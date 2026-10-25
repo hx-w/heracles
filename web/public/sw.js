@@ -12,7 +12,7 @@ main { padding: 32px; text-align: center; }
 h1 { margin: 0 0 24px; font-size: 28px; }
 p { color: #58665d; font-size: 18px; margin: 0 0 28px; }
 a { display: inline-block; padding: 12px 24px; background: #245d42; color: #ffffff; border-radius: 12px; text-decoration: none; }
-a:focus-visible { outline: 3px solid #c3e88d; outline-offset: 4px; }
+a:focus-visible { outline: 3px solid #245d42; outline-offset: 4px; }
 </style>
 </head>
 <body><main><h1>Heracles</h1><p>当前离线</p><a href="/">重新连接</a></main></body>
