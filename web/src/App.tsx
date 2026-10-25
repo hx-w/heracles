@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { StrengthDrawer } from './components/StrengthDrawer';
 import { Today } from './components/Today';
 import { CoachChat } from './components/CoachChat';
 import { TrainingPlan } from './components/TrainingPlan';
@@ -14,6 +15,7 @@ const navigation: { panel: Panel; label: string; icon: string }[] = [
 export default function App() {
   const controller = useCoachState();
   const { state, loadError, loading } = controller;
+  const [strengthOpen, setStrengthOpen] = useState(false);
   const [selected, setSelected] = useState<Panel>('today');
   useEffect(() => {
     const navigate = () => {
@@ -86,10 +88,11 @@ export default function App() {
       <button className="connection-status" disabled={!state || controller.syncBusy} onClick={() => void controller.syncGarmin()} aria-label="同步佳明数据">{loadError ? '连接中断' : controller.syncBusy ? '同步中' : state?.connection.garmin ? '佳明已连接' : '同步佳明'}<span aria-hidden="true">↻</span></button></header>
     <div className="global-feedback" hidden={Boolean(state && !loadError)} role="status" aria-live="polite"><span>{loadError || '加载中…'}</span>{loadError && <button type="button" className="quiet" disabled={loading} onClick={() => void controller.reload()}>{loading ? '连接中…' : '重试'}</button>}</div>
     <main id="main-content" tabIndex={-1} className="workspace">
-      <Today controller={controller} active={selected === 'today'} askCoach={askCoach} />
+      <Today controller={controller} active={selected === 'today'} askCoach={askCoach} openStrength={() => setStrengthOpen(true)} />
       <CoachChat controller={controller} active={selected === 'coach'} prompt={coachPrompt} />
       <TrainingPlan controller={controller} active={selected === 'plan'} />
     </main>
+    <StrengthDrawer open={strengthOpen} onClose={() => setStrengthOpen(false)} controller={controller} askCoach={askCoach} />
     <nav className="navigation" aria-label="工作区">{navigation.map(item => <a key={item.panel} href={item.panel === 'coach' ? '#coach' : `#${item.panel}`} aria-current={selected === item.panel ? 'page' : undefined}>
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={item.icon} /></svg>{item.label}</a>)}</nav>
   </div>;

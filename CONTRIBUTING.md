@@ -1,9 +1,16 @@
 # Contributing
 
-欢迎修复移动端体验、佳明数据解析和训练调整问题。提交前请先说明用户遇到什么问题；新功能应服务于佳明训练计划增强，避免引入多人管理或额外后台服务。
+Heracles enhances Garmin training, with a focus on activity review, practical temporary adjustments, recovery feedback and strength training. Keep new work focused on these flows. Avoid adding social features, a second long-term planning system or extra background services.
 
-本地准备与检查命令见 [README](README.md#开发)。测试使用临时 SQLite、模拟佳明接口与模拟模型输出，不需要真实账号。重要改动请覆盖：同日多课、来源缺失或过期、同步期间状态变化、重复点击和撤销。
+Use Go 1.25+, Bun and the official Harness CLI for local development. Check changes with:
 
-提交 pull request 时简述问题、改变后的行为及实际执行的检查。UI 改动请附手机尺寸的截图，并标明是否为测试数据。不要上传真实健康数据、访问链接、API 密钥、令牌、数据库、FIT 或生成的构建目录。
+```sh
+go test -race ./...
+bun --bun run build
+```
 
-CI 仅负责 Docker 构建及部署镜像产物；测试在本地运行，不新增其他 CI。请保留 MIT 许可和第三方依赖的许可。
+Tests use temporary SQLite databases, fake HTTP endpoints and explicit fixtures. Do not commit personal activity data, credentials, pairing links or runtime output. UI changes should include mobile screenshots labeled as fixtures when appropriate.
+
+A pull request should explain the user-visible problem, resulting behavior and checks actually run. Cover multi-sport same-day sessions, stale or missing sources, concurrent actions, retries and reversals where relevant. CI is limited to Docker image construction and export; run tests locally rather than adding unrelated jobs.
+
+Exercise media is not MIT code: preserve its per-file credits and licence. See [media attribution](docs/exercise-media.md).

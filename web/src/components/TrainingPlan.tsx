@@ -164,7 +164,7 @@ function PlanMetadata({ plan, timezone }: { plan: Plan; timezone: string }) {
         </li>)}
       </ul>}
     </article>)}
-    <p className="training-chart-note">佳明原计划持续保留。Heracles 调整独立保存，确认后用于本站训练安排，尚不下发至手表。</p>
+    <p className="training-chart-note">佳明原计划持续保留。Heracles 调整独立保存；可另行确认导出独立课程到佳明课程库，不会改写自适应计划。</p>
   </section>;
 }
 export function TrainingPlan({ controller, active }: { controller: CoachController; active: boolean }) {
@@ -198,7 +198,7 @@ export function TrainingPlan({ controller, active }: { controller: CoachControll
           return <button type="button" key={date} className="training-date-row" aria-pressed={date === selected} aria-controls="selected-training" onClick={() => setSelectedDate(date)}
             aria-label={`${dateLabel(date, false, state?.timezone)}${date === state?.today ? ' 今天' : ''}，${daily.length || local.length ? [...daily, ...local].map(item => `${item.title}，${'status' in item ? statusLabels[item.status] : 'Heracles 已采用'}`).join('；') : 'Garmin 未返回课程'}，查看详情`}>
             <span className="training-date-label"><strong>{date === state?.today ? '今天' : dateValue(date)?.toLocaleDateString('zh-CN', { timeZone: state?.timezone, weekday: 'short' })}</strong><span>{date.slice(5)}</span></span>
-            <span className="training-date-content">{local.map((item, index) => <span className="training-day-course" key={`local-${index}`}><span className="training-row-heading"><span>{item.title}</span><span>Heracles · 已采用</span></span><span className="training-row-minutes">{item.kind === 'rest' ? '休息 / 恢复' : item.steps.every(step => step.duration_seconds !== null) ? `步骤合计 ${duration(item.steps.reduce((sum, step) => sum + (step.duration_seconds || 0) * step.repeat, 0))}` : '按步骤中的时间与距离执行'}</span></span>)}{daily.length ? daily.map((item, index) => <span className="training-day-course" key={`${item.id}-${index}`}>
+            <span className="training-date-content">{local.map((item, index) => <span className="training-day-course" key={`local-${index}`}><span className="training-row-heading"><span>{item.title}</span><span>Heracles · 已采用</span></span><span className="training-row-minutes">{item.kind === 'rest' ? '休息 / 恢复' : item.steps.every(step => step.duration_seconds != null) ? `步骤合计 ${duration(item.steps.reduce((sum, step) => sum + (step.duration_seconds || 0) * (step.repeat || 1) * (step.sets || 1) + (step.rest_seconds || 0) * ((step.repeat || 1) * (step.sets || 1) - 1), 0))}` : '按步骤中的时间与距离执行'}</span></span>)}{daily.length ? daily.map((item, index) => <span className="training-day-course" key={`${item.id}-${index}`}>
               <span className="training-row-heading"><span>{item.title || kindLabels[item.kind]}</span><span>{statusLabels[item.status]}</span></span><TimeBar workout={item} scale={scale} />
             </span>) : !local.length && <span className="training-no-bar">Garmin 未返回课程，非休息记录</span>}</span>
           </button>;

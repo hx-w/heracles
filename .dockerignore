@@ -19,3 +19,5 @@ tests
 .DS_Store
 
 .ops/
+*.tar.gz
+garmin_tokens.json

@@ -7,7 +7,10 @@ services:
       - '127.0.0.1:${HERACLES_PORT:-8791}:8791'
     environment:
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
-      FORWARDED_ALLOW_IPS: '*'
+      COACH_MODEL: ${COACH_MODEL:-deepseek-flash}
+      COACH_PROVIDER: ${COACH_PROVIDER:-deepseek-official}
+      GARMIN_REGION: ${GARMIN_REGION:-cn}
+      GARMIN_SYNC_SECONDS: ${GARMIN_SYNC_SECONDS:-300}
     volumes:
       - heracles_data:/data
     init: true

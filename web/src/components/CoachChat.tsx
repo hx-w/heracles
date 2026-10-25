@@ -4,16 +4,16 @@ import type { CoachController } from '../hooks/useCoachState';
 import type { Message } from '../types';
 import { ReplyMarkdown } from './ReplyMarkdown';
 import { ReplyVisuals } from './ReplyVisuals';
+import { ExerciseCard } from './ExerciseCard';
 import { ProposalCard } from './ProposalCard';
-import { ReplyImages } from './ReplyImages';
 import './rich-reply.css';
 
 
 function AssistantReply({ message }: { message: Message }) {
   return <div className="reply-content rich-reply" lang="zh">
     {message.content && <ReplyMarkdown content={message.content} />}
+    {message.exercises?.map(exercise => <ExerciseCard key={exercise.id} exercise={exercise} compact />)}
     <ReplyVisuals visuals={message.visuals || []} />
-    <ReplyImages images={message.images || []} error={message.image_error} />
     {message.sections?.map((section, index) => <section key={index} className="reply-section">
       <h2 className="reply-section-title">{section.title}</h2>
       {section.items.map((item, itemIndex) => <ReplyMarkdown key={itemIndex} content={item} />)}
@@ -60,7 +60,7 @@ export function CoachChat({ controller, active, prompt }: { controller: CoachCon
     if (await sendChat(message)) setDraft(current => current.trim() === message ? '' : current);
   }
   return <section id="coach" className={`panel coach-panel${active ? ' is-active' : ''}`} aria-labelledby="coach-heading">
-    <div className="coach-topline"><div><span className="coach-glyph" aria-hidden="true">✳</span><h1 id="coach-heading">你的跑步教练</h1></div><span>{coachBusy ? '正在分析' : coach?.available ? 'DeepSeek Flash' : '等待连接'}</span></div>
+    <div className="coach-topline"><div><span className="coach-glyph" aria-hidden="true">✳</span><h1 id="coach-heading">你的训练教练</h1></div><span>{coachBusy ? '正在分析' : coach?.available ? (coach.model || 'AI 教练') : '等待连接'}</span></div>
     <div className="messages" ref={messagesRef} aria-label="教练对话" onScroll={event => {
       const element = event.currentTarget;
       followLatest.current = element.scrollHeight - element.scrollTop - element.clientHeight < 80;

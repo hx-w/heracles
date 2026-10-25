@@ -18,3 +18,5 @@ artifacts/
 coverage/
 
 .ops/
+garmin_tokens.json
+*.tar.gz

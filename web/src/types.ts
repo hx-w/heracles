@@ -74,21 +74,8 @@ export interface MetricSeries {
 }
 export interface VisualRequest { kind: 'trend' | 'table'; title: string; metrics: MetricKey[] }
 export interface MessageVisual { kind: 'trend' | 'table'; title: string; source: 'garmin'; series: MetricSeries[] }
-export interface IllustrationRequest { title: string; subject: string; caption: string }
-export interface MessageImage {
-  id: string;
-  title: string;
-  caption: string;
-  url: string;
-  width: number;
-  height: number;
-  media_type: string;
-  provider: string;
-  model: string;
-  created_at: string;
-}
 export interface CoachToolRequest {
-  action: 'refresh_data' | 'friends_feed' | 'activity_details' | 'health_details' | 'workout_details';
+  action: 'refresh_data' | 'activity_details' | 'health_details' | 'workout_details';
   activity_id?: string | null;
   workout_id?: string | null;
   date?: string | null;
@@ -103,7 +90,6 @@ export interface CoachReply {
   profile_update: Profile | null;
   tool_requests: CoachToolRequest[];
   visuals?: VisualRequest[];
-  illustration?: IllustrationRequest | null;
 }
 export interface Message {
   id?: string | number;
@@ -112,8 +98,7 @@ export interface Message {
   created_at: string;
   sections?: ReplySection[];
   visuals?: MessageVisual[];
-  images?: MessageImage[];
-  image_error?: string | null;
+  exercises?: Exercise[];
   proposal_id?: string;
   proposal_error?: string;
 }
@@ -138,7 +123,11 @@ export interface CoachState {
   proposals: Proposal[];
   active_sessions: ProposedSession[];
   metrics: BodyMetric[];
-  connection: { garmin: boolean; synced_at: string | null; sync_error: string | null };
+  connection: { garmin: boolean; synced_at: string | null; sync_error: string | null; poll_seconds: number };
+  training_logs: TrainingLog[];
+  exercise_catalog: Exercise[];
+  exports: {id: string; proposal_id: string; status: string; note: string; error?: string}[];
+  activities: { id: number | string; date: string | null; name: string; sport: string; distance_km: number | null; duration_minutes: number | null; pace: string | null }[];
 }
 export interface Feedback { message: string; error?: boolean }
 export interface Accepted { accepted: boolean }
@@ -158,10 +147,20 @@ export interface TrainingStep {
   repeat: number;
   target: string;
   instructions: string;
+  exercise_id?: string | null;
+  sets?: number | null;
+  reps?: string | null;
+  load_kg?: number | null;
+  rest_seconds?: number | null;
 }
 export interface ProposedSession {
   date: string;
   base_workout_id: string | null;
+  base_local_id?: string | null;
+  local_id?: string;
+  previous_session?: ProposedSession | null;
+  operation?: 'add' | 'replace';
+  sport?: string | null;
   title: string;
   kind: GarminWorkoutKind;
   reason: string;
@@ -187,3 +186,14 @@ export interface BodyMetric {
   status: string; source_at: string | null; fetched_at: string | null;
   fresh: boolean;
 }
+
+export interface Exercise {
+  id: string; name: string; equipment: string; muscles: string;
+  setup: string; steps: string[]; mistakes: string[];
+  image: string | null; video: string | null; animation?: string | null;
+  credits?: { kind: string; author: string; license: string; license_url: string; source_url: string }[];
+  source_url: string; source_name: string;
+  license: string; license_url: string; author: string;
+}
+export interface TrainingSet { exercise_id: string; exercise_name: string; reps: number; load_kg: number }
+export interface TrainingLog { id: string; date: string; title: string; kind: string; sets: TrainingSet[]; effort: number; notes: string; created_at?: string; source?: string }

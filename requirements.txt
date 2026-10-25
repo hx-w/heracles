@@ -1,7 +1,0 @@
-fastapi==0.142.2
-uvicorn==0.54.0
-garminconnect==0.3.17
-curl_cffi==0.16.3
-fitdecode==0.11.0
-Pillow==12.1.1
-deepseek-harness-sdk==0.2.1rc2

@@ -1,0 +1,438 @@
+[
+  {
+    "id": "bench-press",
+    "name": "杠铃卧推",
+    "equipment": "杠铃、卧推凳",
+    "muscles": "胸部、肱三头肌",
+    "setup": "双脚踩稳，眼睛位于杠铃下方；调整保护杆，重重量请安排保护。",
+    "steps": [
+      "肩胛稳定，握距略宽于肩。",
+      "控制下放至舒适位置，前臂接近垂直。",
+      "平稳推起，保持脚和躯干稳定。"
+    ],
+    "mistakes": [
+      "不要弹胸或让臀部离凳。",
+      "肩部疼痛时停止并调整。"
+    ],
+    "image": "/exercises/bench-press.png",
+    "video": "/exercises/bench-press.mp4",
+    "animation": "/exercises/bench-press.gif",
+    "source_url": "https://wger.de/en/exercise/73/view/",
+    "source_name": "wger exercise database",
+    "license": "CC BY-SA 4.0 (adapted instructions)",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "author": "sistab2",
+    "credits": [
+      {
+        "kind": "image",
+        "author": "Everkinetic",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0/",
+        "source_url": "https://wger.de/media/exercise-images/192/Bench-press-1.png"
+      },
+      {
+        "kind": "video / transcoded",
+        "author": "Goulart",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_url": "https://wger.de/media/exercise-video/73/2bdb390c-312c-4497-a722-5eed2c823e5a.MOV"
+      }
+    ],
+    "source_id": 73
+  },
+  {
+    "id": "lat-pulldown",
+    "name": "窄握高位下拉",
+    "equipment": "高位下拉器械",
+    "muscles": "背部、肱二头肌",
+    "setup": "调整腿垫固定大腿，选择能控制全程的重量。",
+    "steps": [
+      "握距略窄于肩，胸部自然抬起。",
+      "肘部朝身体两侧向下移动，将握把拉向上胸。",
+      "控制回程，保持躯干稳定。"
+    ],
+    "mistakes": [
+      "不要借腰部大幅后仰拉动。",
+      "不要把握把拉到颈后。"
+    ],
+    "image": "/exercises/lat-pulldown.png",
+    "video": null,
+    "animation": null,
+    "source_url": "https://wger.de/en/exercise/158/view/",
+    "source_name": "wger exercise database",
+    "license": "CC BY-SA 4.0 (adapted instructions)",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "author": "tuckerm",
+    "credits": [
+      {
+        "kind": "image",
+        "author": "Franpol",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_url": "https://wger.de/media/exercise-images/158/0d51a0f2-622f-434b-beb8-1a003c54712a.png"
+      }
+    ],
+    "source_id": 158
+  },
+  {
+    "id": "goblet-squat",
+    "name": "哑铃高脚杯深蹲",
+    "equipment": "哑铃",
+    "muscles": "腿部、臀部、核心",
+    "setup": "双手把哑铃靠近胸前，双脚约与肩同宽。",
+    "steps": [
+      "吸气并保持躯干稳定。",
+      "髋膝一起弯曲，下蹲到自己能控制的深度。",
+      "膝盖朝脚尖方向移动，平稳站起。"
+    ],
+    "mistakes": [
+      "不要为了深度而弓背。",
+      "避免脚跟抬起或膝盖突然内扣。"
+    ],
+    "image": "/exercises/goblet-squat.jpeg",
+    "video": null,
+    "animation": null,
+    "source_url": "https://wger.de/en/exercise/203/view/",
+    "source_name": "wger exercise database",
+    "license": "CC BY-SA 4.0 (adapted instructions)",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "author": "ataraxie67",
+    "credits": [
+      {
+        "kind": "image",
+        "author": "philip",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_url": "https://wger.de/media/exercise-images/203/1c052351-2af0-4227-aeb0-244008e4b0a8.jpeg"
+      }
+    ],
+    "source_id": 203
+  },
+  {
+    "id": "lying-leg-curl",
+    "name": "俯卧腿弯举",
+    "equipment": "腿弯举器械",
+    "muscles": "腘绳肌",
+    "setup": "膝关节对齐器械转轴，滚垫位于小腿下端。",
+    "steps": [
+      "握稳把手，髋部贴住凳面。",
+      "弯曲膝盖，把滚垫拉向臀部方向。",
+      "控制放回，保持身体位置不变。"
+    ],
+    "mistakes": [
+      "不要通过抬髋或甩腿完成。",
+      "膝部出现不适时停止。"
+    ],
+    "image": "/exercises/lying-leg-curl.png",
+    "video": "/exercises/lying-leg-curl.mp4",
+    "animation": null,
+    "source_url": "https://wger.de/en/exercise/365/view/",
+    "source_name": "wger exercise database",
+    "license": "CC BY-SA 4.0 (adapted instructions)",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "author": "wger.de",
+    "credits": [
+      {
+        "kind": "image",
+        "author": "Everkinetic",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0/",
+        "source_url": "https://wger.de/media/exercise-images/154/lying-leg-curl-machine-large-1.png"
+      },
+      {
+        "kind": "video / transcoded",
+        "author": "Goulart",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_url": "https://wger.de/media/exercise-video/365/becaf013-5044-40d0-bae9-7ed60c973737.MOV"
+      }
+    ],
+    "source_id": 365
+  },
+  {
+    "id": "leg-extension",
+    "name": "坐姿腿屈伸",
+    "equipment": "腿屈伸器械",
+    "muscles": "股四头肌",
+    "setup": "调整靠背，膝盖对齐转轴，滚垫放在小腿前侧下端。",
+    "steps": [
+      "坐稳并握住把手。",
+      "在舒适范围内伸直膝盖。",
+      "控制下降，不让配重快速落下。"
+    ],
+    "mistakes": [
+      "不要靠甩动起始。",
+      "避免顶住膝关节过伸。"
+    ],
+    "image": "/exercises/leg-extension.png",
+    "video": null,
+    "animation": null,
+    "source_url": "https://wger.de/en/exercise/369/view/",
+    "source_name": "wger exercise database",
+    "license": "CC BY-SA 4.0 (adapted instructions)",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "author": "BFad07",
+    "credits": [
+      {
+        "kind": "image",
+        "author": "Franpol",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_url": "https://wger.de/media/exercise-images/369/78c915d1-e46d-4d30-8124-65d68664c3ef.png"
+      }
+    ],
+    "source_id": 369
+  },
+  {
+    "id": "leg-press",
+    "name": "腿举机",
+    "equipment": "腿举器械",
+    "muscles": "腿部、臀部",
+    "setup": "调整座椅与安全限位，双脚稳放踏板。",
+    "steps": [
+      "保持背部和骨盆贴住靠垫。",
+      "控制弯曲髋膝到能保持稳定的范围。",
+      "平稳推开，膝盖始终顺着脚尖方向。"
+    ],
+    "mistakes": [
+      "不要在最低点卷起骨盆。",
+      "避免在顶端锁死膝盖。"
+    ],
+    "image": "/exercises/leg-press.webp",
+    "video": "/exercises/leg-press.mp4",
+    "animation": null,
+    "source_url": "https://wger.de/en/exercise/371/view/",
+    "source_name": "wger exercise database",
+    "license": "CC BY-SA 4.0 (adapted instructions)",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "author": "BFad07",
+    "credits": [
+      {
+        "kind": "image",
+        "author": "BFad07",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_url": "https://wger.de/media/exercise-images/371/d2136f96-3a43-4d4c-9944-1919c4ca1ce1.webp"
+      },
+      {
+        "kind": "video / transcoded",
+        "author": "Goulart",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_url": "https://wger.de/media/exercise-video/371/6aae16b4-01b9-4eb4-935c-3250f84d2c59.MOV"
+      }
+    ],
+    "source_id": 371
+  },
+  {
+    "id": "plank",
+    "name": "前臂平板支撑",
+    "equipment": "瑜伽垫",
+    "muscles": "核心稳定",
+    "setup": "前臂撑地，肘部大致位于肩下。",
+    "steps": [
+      "脚趾撑地，让头、躯干和骨盆保持自然直线。",
+      "收紧腹部并保持呼吸。",
+      "姿势无法保持时结束本组。"
+    ],
+    "mistakes": [
+      "不要塌腰、憋气或耸肩。",
+      "不要以撑得更久替代动作质量。"
+    ],
+    "image": "/exercises/plank.png",
+    "video": null,
+    "animation": null,
+    "source_url": "https://wger.de/en/exercise/458/view/",
+    "source_name": "wger exercise database",
+    "license": "CC BY-SA 4.0 (adapted instructions)",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "author": "YYCfit / BFad07",
+    "credits": [
+      {
+        "kind": "image",
+        "author": "utkb",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_url": "https://wger.de/media/exercise-images/458/b7bd9c28-9f1d-4647-bd17-ab6a3adf5770.png"
+      }
+    ],
+    "source_id": 458
+  },
+  {
+    "id": "romanian-deadlift",
+    "name": "罗马尼亚硬拉",
+    "equipment": "杠铃或哑铃",
+    "muscles": "髋部后侧链",
+    "setup": "选择轻重量练习髋部折叠，双脚站稳，器械贴近腿部。",
+    "steps": [
+      "膝盖微屈，髋部向后移动。",
+      "保持脊柱自然与器械靠近身体。",
+      "在仍能保持姿势的范围内，用髋部力量站起。"
+    ],
+    "mistakes": [
+      "不要把它做成大幅屈膝的深蹲。",
+      "背部疼痛或动作无法控制时停止。"
+    ],
+    "image": "/exercises/romanian-deadlift.jpg",
+    "video": "/exercises/romanian-deadlift.mp4",
+    "animation": null,
+    "source_url": "https://wger.de/en/exercise/507/view/",
+    "source_name": "wger exercise database",
+    "license": "CC BY-SA 4.0 (adapted instructions)",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "author": "pjwirth",
+    "credits": [
+      {
+        "kind": "video / transcoded",
+        "author": "Goulart",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_url": "https://wger.de/media/exercise-video/507/307e7276-a14d-4ea0-b579-f5b0dbc6f5af.MOV"
+      }
+    ],
+    "source_id": 507
+  },
+  {
+    "id": "seated-cable-row",
+    "name": "坐姿窄握绳索划船",
+    "equipment": "坐姿划船器械",
+    "muscles": "背部",
+    "setup": "双脚踩稳，膝盖微屈，躯干保持稳定。",
+    "steps": [
+      "挺胸但不刻意过伸腰部。",
+      "把肘部向后带动，握把拉向躯干。",
+      "控制手臂回到起点，保持呼吸。"
+    ],
+    "mistakes": [
+      "不要大幅前后摆动借力。",
+      "不要耸肩或低头。"
+    ],
+    "image": "/exercises/seated-cable-row.png",
+    "video": "/exercises/seated-cable-row.mp4",
+    "animation": null,
+    "source_url": "https://wger.de/en/exercise/512/view/",
+    "source_name": "wger exercise database",
+    "license": "CC BY-SA 4.0 (adapted instructions)",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "author": "wger.de",
+    "credits": [
+      {
+        "kind": "image",
+        "author": "wger.de",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_url": "https://wger.de/media/exercise-images/512/b938437e-ff00-4679-9036-acb41bb28bbd.png"
+      },
+      {
+        "kind": "video / transcoded",
+        "author": "Goulart",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_url": "https://wger.de/media/exercise-video/512/fff4c294-93f0-4926-b3a2-bf59ad4afaa5.MOV"
+      }
+    ],
+    "source_id": 512
+  },
+  {
+    "id": "incline-dumbbell-press",
+    "name": "上斜哑铃卧推",
+    "equipment": "哑铃、可调训练凳",
+    "muscles": "上胸、肩部、肱三头肌",
+    "setup": "训练凳调为约30至45度，双脚踩稳，先把哑铃放在大腿上。",
+    "steps": [
+      "安全靠到凳上，肩胛保持稳定。",
+      "双手向上推起，手腕与前臂保持稳定。",
+      "控制下放到舒适范围。"
+    ],
+    "mistakes": [
+      "避免过高的凳面角度。",
+      "不要让肩关节勉强进入过深位置。"
+    ],
+    "image": "/exercises/incline-dumbbell-press.png",
+    "video": null,
+    "animation": null,
+    "source_url": "https://wger.de/en/exercise/537/view/",
+    "source_name": "wger exercise database",
+    "license": "CC BY-SA 4.0 (adapted instructions)",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "author": "wger.de",
+    "credits": [
+      {
+        "kind": "image",
+        "author": "Everkinetic",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0/",
+        "source_url": "https://wger.de/media/exercise-images/16/Incline-press-1.png"
+      }
+    ],
+    "source_id": 537
+  },
+  {
+    "id": "hammer-curl",
+    "name": "交替哑铃锤式弯举",
+    "equipment": "哑铃",
+    "muscles": "手臂屈肌",
+    "setup": "双手中立握持哑铃，双膝自然微屈。",
+    "steps": [
+      "保持躯干稳定，上臂贴近身体。",
+      "单侧弯肘举起哑铃。",
+      "控制回程，再换另一侧。"
+    ],
+    "mistakes": [
+      "不要后仰或甩动躯干。",
+      "手腕保持自然，不要过度折腕。"
+    ],
+    "image": "/exercises/hammer-curl.png",
+    "video": null,
+    "animation": null,
+    "source_url": "https://wger.de/en/exercise/1567/view/",
+    "source_name": "wger exercise database",
+    "license": "CC BY-SA 4.0 (adapted instructions)",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "author": "Mariano_O",
+    "credits": [
+      {
+        "kind": "image",
+        "author": "Mariano_O",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_url": "https://wger.de/media/exercise-images/1567/0a8c155c-a48e-47e8-9df3-e39f025c6cad.png"
+      }
+    ],
+    "source_id": 1567
+  },
+  {
+    "id": "machine-row",
+    "name": "坐姿器械划船",
+    "equipment": "划船器械",
+    "muscles": "背部",
+    "setup": "调整座椅，让握把位于舒适高度；若有胸垫则稳靠胸垫。",
+    "steps": [
+      "保持胸部自然抬起。",
+      "用肘部带动拉动握把，末端轻收肩胛。",
+      "控制回程，保持身体位置。"
+    ],
+    "mistakes": [
+      "不要弓背或大幅前倾。",
+      "避免耸肩和用惯性甩动。"
+    ],
+    "image": "/exercises/machine-row.png",
+    "video": null,
+    "animation": null,
+    "source_url": "https://wger.de/en/exercise/1725/view/",
+    "source_name": "wger exercise database",
+    "license": "CC BY-SA 4.0 (adapted instructions)",
+    "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "author": "barry",
+    "credits": [
+      {
+        "kind": "image",
+        "author": "barry",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "source_url": "https://wger.de/media/exercise-images/1725/f0ebd44e-b8e1-400c-b598-ca371f3a07af.png"
+      }
+    ],
+    "source_id": 1725
+  }
+]

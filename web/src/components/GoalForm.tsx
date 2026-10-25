@@ -36,7 +36,7 @@ export function GoalForm({ controller }: { controller: CoachController }) {
       <fieldset disabled={!state || profileSaving}>
         <label htmlFor="goal">长期目标</label><textarea id="goal" rows={2} maxLength={1500} value={draft.goal} onChange={event => update('goal', event.target.value)} />
         <div className="form-row"><div><label htmlFor="target-date">目标日期（可选）</label><input type="date" id="target-date" value={draft.target_date} onChange={event => update('target_date', event.target.value)} /></div>
-          <div><label htmlFor="weekly-days">每周可训练天数</label><input type="number" min={1} max={6} step={1} id="weekly-days" required inputMode="numeric" value={draft.weekly_days} onChange={event => update('weekly_days', event.target.value)} /></div></div>
+          <div><label htmlFor="weekly-days">每周可训练天数</label><input type="number" min={1} max={7} step={1} id="weekly-days" required inputMode="numeric" value={draft.weekly_days} onChange={event => update('weekly_days', event.target.value)} /></div></div>
         <label htmlFor="experience">运动经验</label><input id="experience" maxLength={500} value={draft.experience} onChange={event => update('experience', event.target.value)} />
         <label htmlFor="notes">补充说明</label><textarea id="notes" rows={3} maxLength={2000} value={draft.notes} onChange={event => update('notes', event.target.value)} />
       </fieldset>
