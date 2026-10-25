@@ -229,6 +229,9 @@ func TestAuthPreviewOriginAndBoundedBody(t *testing.T) {
 		if w.Code != 200 || w.Header().Get("Set-Cookie") != "" {
 			t.Fatal("GET consumed invite")
 		}
+		if w.Header().Get("Referrer-Policy") != "strict-origin" {
+			t.Fatal("pairing navigation must preserve Origin without leaking invitation query")
+		}
 	}
 	if !s.Store.Pending(invite) {
 		t.Fatal("preview consumed invite")

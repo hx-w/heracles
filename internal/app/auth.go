@@ -94,6 +94,8 @@ func privatePage(w http.ResponseWriter, token string, valid bool) {
 		text = "授权一次，即可持续使用。请勿转发此链接。"
 		form = fmt.Sprintf(`<form method="post" action="/api/pair"><input type="hidden" name="access" value="%s"><button>授权此设备</button></form>`, html.EscapeString(token))
 	}
+	// Navigation POSTs need a non-null Origin; send only the origin, never invitation queries.
+	w.Header().Set("Referrer-Policy", "strict-origin")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'")
 	if !valid {
