@@ -228,6 +228,26 @@ func (s *Server) coachTurn() {
 			return
 		}
 	}
+	// One bounded repair round lets the coach correct a rejected structured plan.
+	// Nothing is adopted or sent externally during drafting or repair.
+	var prepared M
+	var proposalErr error
+	if p := reply["proposal"]; p != nil {
+		prepared, proposalErr = s.Draft(object(p), context)
+		if proposalErr != nil {
+			context["validation_feedback"] = M{"error": proposalErr.Error(), "rejected_proposal": p, "instruction": "修正校验错误并返回完整回复，不要请求工具"}
+			setPhase("校验课程步骤与时间，修正方案")
+			fixed, err := s.Harness.Infer(ctx, context)
+			if err == nil && len(array(fixed["tool_requests"])) == 0 {
+				reply = fixed
+				prepared = nil
+				proposalErr = nil
+				if p := reply["proposal"]; p != nil {
+					prepared, proposalErr = s.Draft(object(p), context)
+				}
+			}
+		}
+	}
 	extra := M{}
 	sections := array(reply["sections"])
 	size := len([]rune(str(reply["summary"])))
@@ -275,13 +295,11 @@ func (s *Server) coachTurn() {
 		}
 	}
 	extra["exercises"] = exercises
-	if p := reply["proposal"]; p != nil {
-		record, err := s.Draft(object(p), context)
-		if err != nil {
-			extra["proposal_error"] = "方案未保存：" + err.Error()
-		} else {
-			extra["proposal_id"] = record["id"]
-		}
+	if prepared != nil {
+		extra["proposal_id"] = prepared["id"]
+	}
+	if proposalErr != nil {
+		extra["proposal_error"] = "方案未保存：" + proposalErr.Error()
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
