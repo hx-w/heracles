@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { syncDisplayMode } from './viewport';
 import type { Course } from './training';
 import { CourseSheet } from './components/CourseSheet';
 import { TrainingHub } from './components/TrainingHub';
@@ -57,7 +58,7 @@ export default function App() {
   useEffect(() => {
     const viewport=window.visualViewport;const root=document.documentElement;
     let baseline=Math.max(window.innerHeight,viewport?.height||0);let width=window.innerWidth;
-    const sync=()=>{if(viewport&&viewport.scale!==1)return;const height=viewport?.height??window.innerHeight;
+    const sync=()=>{syncDisplayMode();if(viewport&&viewport.scale!==1)return;const height=viewport?.height??window.innerHeight;
       if(Math.abs(window.innerWidth-width)>60){baseline=Math.max(window.innerHeight,height);width=window.innerWidth}
       baseline=Math.max(baseline,window.innerHeight,height);
       const editing=document.activeElement?.matches('textarea,input,[contenteditable="true"]');const keyboard=Boolean(editing&&baseline-height>120);
@@ -75,7 +76,7 @@ export default function App() {
     if(focusTarget==='checkin'){setCheckinRequest(n=>n+1);setFocusTarget('');return}
     const target=document.getElementById(focusTarget);
     if(!target||target.getClientRects().length===0)return;
-    target.scrollIntoView({block:'nearest'});target.focus({preventScroll:true});setFocusTarget('');
+    target.focus({preventScroll:true});setFocusTarget('');
   },[focusTarget,selected,trainingOpen,strengthOpen]);
   function openCheckin(){setSelected('today');location.hash='today';setFocusTarget('checkin')}
 

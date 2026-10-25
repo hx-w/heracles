@@ -20,3 +20,7 @@ Apple documents Live Activities using ActivityKit, WidgetKit and SwiftUI in an a
 Sources: [Apple Home Screen installation](https://support.apple.com/guide/iphone/iphea86e5236/ios), [WebKit Home Screen web app capabilities](https://webkit.org/blog/13878/), [Apple Live Activities](https://developer.apple.com/documentation/activitykit/displaying-live-data-with-live-activities).
 
 Validation uses Chromium and WebKit with iPhone viewports and browser API lifecycle checks. It is not physical iPhone or Dynamic Island hardware testing.
+
+The app shell stays in normal document flow. Installed display mode uses `100vh`; browser mode uses `100dvh`, with `navigator.standalone` as well as display-mode detection. Only the open keyboard temporarily sizes the shell from VisualViewport. The bottom navigation owns the bottom safe area once, while the header owns the top inset. Avoid fixing the root or adding independent bottom spacers to individual tabs. Some iOS releases have [WebKit standalone viewport defects](https://bugs.webkit.org/show_bug.cgi?id=313800); emulation cannot establish whether a particular physical device is affected.
+
+Coach replies put conclusions and actions first. Existing activity reports can expose exact reported facts without rewriting stored messages. Detailed evidence and charts are collapsed initially; chart windows must match their stated period, and missing measurements stay missing.

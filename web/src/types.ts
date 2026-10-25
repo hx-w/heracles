@@ -73,7 +73,7 @@ export interface MetricSeries {
   points: MetricPoint[];
 }
 export interface VisualRequest { kind: 'trend' | 'table'; title: string; metrics: MetricKey[] }
-export interface MessageVisual { kind: 'trend' | 'table'; title: string; source: 'garmin'; series: MetricSeries[] }
+export interface MessageVisual { period_days?: number; kind: 'trend' | 'table'; title: string; source: 'garmin'; series: MetricSeries[] }
 export interface CoachToolRequest {
   action: 'refresh_data' | 'activity_details' | 'health_details' | 'workout_details';
   activity_id?: string | null;

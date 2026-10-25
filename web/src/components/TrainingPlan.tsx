@@ -9,15 +9,15 @@ import { CourseSheet, sessionTime } from './CourseSheet';
 import './training.css';
 function datesFrom(today: string) { const d=new Date(`${today}T12:00:00Z`);return Array.from({length:7},(_,i)=>{const n=new Date(d);n.setUTCDate(n.getUTCDate()+i);return n.toISOString().slice(0,10)}) }
 export function TrainingPlan({ controller, active, askCoach }: { controller: CoachController; active: boolean; askCoach:(text:string)=>void }) {
- const {state,syncBusy,syncGarmin}=controller;
+ const {state}=controller;
  const [selectedDate,setSelectedDate]=useState('');const [detail,setDetail]=useState<Course|null>(null);
  const dates=state?datesFrom(state.today):[];const selected=dates.includes(selectedDate)?selectedDate:state?.today||'';
  const daily=state?coursesFor(state,selected):[];const all=state?dates.flatMap(d=>coursesFor(state,d)):[];const phase=state?.plan.phases.find(p=>p.current);const pending=state?.proposals.filter(p=>p.status==='pending')||[];
- const counts=all.filter(s=>s.kind!=='rest').length;const completed=all.filter(s=>isGarmin(s)&&s.status==='completed').length;
+ const counts=all.filter(s=>s.kind!=='rest').length;
  return <section id="plan" className={`panel training-plan${active?' is-active':''}`} aria-labelledby="plan-heading">
-  <div className="page-heading"><div><h1 id="plan-heading">训练安排</h1></div><button className="icon-action" disabled={!state||syncBusy} onClick={()=>void syncGarmin()} aria-label="同步训练安排">↻</button></div>
+  <div className="page-heading"><div><h1 id="plan-heading">训练安排</h1></div></div>
   {state?.plan.status==='error'&&<p className="feedback is-error">同步未完成，当前显示上次安排。</p>}
-  <section className="plan-overview"><span className="status-tag">佳明主线</span><h2>{chineseTitle(state?.plan.name||'你的训练计划')}</h2><div className="plan-facts"><div><strong>{counts}</strong><span>七日训练</span></div><div><strong>{completed}</strong><span>已完成</span></div><div><strong>{phase?phaseNames[phase.training_phase]||'训练期':'按计划'}</strong><span>当前阶段</span></div></div></section>
+  <section className="plan-overview"><h2>{chineseTitle(state?.plan.name||'你的训练计划')}</h2><div className="plan-summary"><span>{phase?phaseNames[phase.training_phase]||'训练期':'训练计划'}</span><span>未来七天 <strong>{counts}</strong> 次训练</span></div></section>
   {pending.length>0&&<details className="pending-adjustments" open><summary>{pending.length} 份方案待确认</summary>{pending.map(p=><ProposalCard key={p.id} proposal={p} controller={controller}/>)}</details>}
   <div className="week-picker" role="group" aria-label="选择训练日期">{dates.map(date=>{const sessions=state?coursesFor(state,date):[];return <button key={date} aria-pressed={selected===date} onClick={()=>setSelectedDate(date)} aria-label={`${dateLabel(date)}，${sessions.length}堂课程`}><span>{date===state?.today?'今天':dateValue(date)?.toLocaleDateString('zh-CN',{weekday:'narrow'})}</span><strong>{Number(date.slice(-2))}</strong><span className="day-marks" aria-hidden="true">{sessions.slice(0,3).map((s,i)=><i key={i} className={`sport-${s.kind}`}/>)}</span></button>})}</div>
   <section className="daily-courses" aria-labelledby="selected-heading"><div className="today-section-title"><h2 id="selected-heading">{selected===state?.today?'今日课程':dateLabel(selected)}</h2><span>{daily.length?`${daily.length}堂安排`:''}</span></div>

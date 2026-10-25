@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -327,14 +328,24 @@ func (s *Server) coachTurn() {
 		if !safeText(m["title"], 80) || (str(m["kind"]) != "trend" && str(m["kind"]) != "table") {
 			continue
 		}
+		days := int(num(m["period_days"]))
+		if days == 0 {
+			match := regexp.MustCompile(`(?:近|过去|最近)\s*(\d{1,2})\s*[天日]`).FindStringSubmatch(str(m["title"]))
+			if len(match) > 1 {
+				days, _ = strconv.Atoi(match[1])
+			}
+		}
+		if days < 1 || days > 30 {
+			days = 7
+		}
 		series := []any{}
 		for _, k := range array(m["metrics"]) {
 			if data := catalog[str(k)]; data != nil {
-				series = append(series, data)
+				series = append(series, visualWindow(object(data), days, today()))
 			}
 		}
-		if len(series) > 0 && len(series) <= 6 {
-			visuals = append(visuals, M{"kind": m["kind"], "title": m["title"], "source": "garmin", "series": series})
+		if len(visuals) < 3 && len(series) > 0 && len(series) <= 6 {
+			visuals = append(visuals, M{"kind": m["kind"], "title": m["title"], "source": "garmin", "period_days": days, "series": series})
 		}
 	}
 	extra["visuals"] = visuals
@@ -615,3 +626,22 @@ func ValidateOrigin(raw string) error {
 }
 
 func (s *Server) Wait() { s.jobs.Wait() }
+
+func visualWindow(series M, days int, end string) M {
+	result := object(clone(series))
+	anchor, e := time.Parse("2006-01-02", end)
+	if e != nil {
+		return result
+	}
+	first := anchor.AddDate(0, 0, 1-days).Format("2006-01-02")
+	points := []any{}
+	for _, v := range array(result["points"]) {
+		p := object(v)
+		date := str(p["date"])
+		if date >= first && date <= end {
+			points = append(points, p)
+		}
+	}
+	result["points"] = points
+	return result
+}

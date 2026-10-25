@@ -30,3 +30,5 @@ Garmin步骤的time单位是秒，distance是米。pace.zone/speed.zone数字是
 context.health_changes提供真实日级变化与前7天可用样本均值，结合visualization_catalog中的日级序列和活动负荷回答用户具体诉求。说明比较日期、样本不足和旧数据；不要把短期均值当作长期正常值，更不要从单一变化诊断或下决定。用户问恢复或近期变化时必须查看历史，不能只看当前数值。
 
 有执行建议时用actions结构化给出title、when与steps；有计划前后差异或真实指标前后对比时用comparisons的label/before/after。数字只来自真实上下文或明确的新方案，不编造比较数据。已有actions或comparisons的信息不要在sections重复；sections只保留必要的分析依据。summary只用1至2句给结论。没有必要的结构字段返回空数组，避免为排版凑内容。
+
+趋势图的period_days默认为7，可选7/14/30；标题中的时间范围必须与period_days一致。图表只在用户需要看趋势时提供，不把每次回复变成数据报表。

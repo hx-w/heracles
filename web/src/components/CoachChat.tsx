@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import type { CoachController } from '../hooks/useCoachState';
 import type { Message } from '../types';
+import { reportedActivityFacts } from './replyFormatting';
 import { ReplyMarkdown } from './ReplyMarkdown';
 import { ReplyVisuals } from './ReplyVisuals';
 import { ExerciseCard } from './ExerciseCard';
@@ -10,17 +11,23 @@ import './rich-reply.css';
 
 
 function AssistantReply({ message }: { message: Message }) {
+  const facts=reportedActivityFacts(message);
+  const sections=message.sections||[];
+  const hasActions=Boolean(message.actions?.length);
+  const main=hasActions?sections.filter(s=>/警|疼痛|风险|停止/.test(s.title)):sections.filter(s=>/建议|下一|注意|调整|改进|判断/.test(s.title));
+  const detail=sections.filter(s=>!main.includes(s));
+  const renderSection=(section: typeof sections[number],index:number)=><section key={index} className="reply-section"><h2 className="reply-section-title">{section.title}</h2>{section.items.map((item,i)=><ReplyMarkdown key={i} content={item}/>)}</section>;
   return <div className="reply-content rich-reply" lang="zh">
     {message.content && <div className="coach-verdict"><ReplyMarkdown content={message.content}/></div>}
+    {facts.length>0&&<dl className="reported-facts" aria-label="本次训练数据">{facts.map(f=><div key={f.label}><dt>{f.label}</dt><dd>{f.value}</dd></div>)}</dl>}
     {Boolean(message.highlights?.length)&&<div className="reply-highlights">{message.highlights?.map((h,i)=><div className={`reply-highlight highlight-${h.kind}`} key={i}><span>{h.label}</span><strong>{h.text}</strong></div>)}</div>}
     {message.comparisons?.map((c,i)=><section className="reply-comparison" key={i}><h2>{c.title}</h2>{c.items.map((row,j)=><div className="comparison-row" key={j}><h3>{row.label}</h3><div><span>原先</span><strong>{row.before}</strong></div><div><span>建议 / 现在</span><strong>{row.after}</strong></div></div>)}</section>)}
     {Boolean(message.actions?.length)&&<section className="reply-actions"><h2>接下来怎么做</h2>{message.actions?.map((a,i)=><article key={i}><div><span className="action-number">{i+1}</span><h3>{a.title}</h3>{a.when&&<span className="action-when">{a.when}</span>}</div><ul>{a.steps.map((step,j)=><li key={j}><ReplyMarkdown content={step}/></li>)}</ul></article>)}</section>}
     {message.exercises?.map(exercise => <ExerciseCard key={exercise.id} exercise={exercise} compact />)}
-    <ReplyVisuals visuals={message.visuals || []} />
-    {message.sections?.map((section, index) => <section key={index} className="reply-section">
-      <h2 className="reply-section-title">{section.title}</h2>
-      {section.items.map((item, itemIndex) => <ReplyMarkdown key={itemIndex} content={item} />)}
-    </section>)}
+    {main.map(renderSection)}
+    {detail.length>0&&<details className="reply-detail"><summary>训练数据与分析依据</summary>{detail.map(renderSection)}</details>}
+    {Boolean(message.visuals?.length)&&<details className="reply-detail"><summary>查看身体趋势</summary><ReplyVisuals visuals={message.visuals||[]}/></details>}
+
   </div>;
 }
 

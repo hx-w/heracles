@@ -103,7 +103,7 @@
 .plan-comparison > div > p { font-size: 13px; margin-top: 5px; overflow-wrap: anywhere; }
 .plan-comparison small { font-size: 11px; color: var(--muted); }
 .coach-steps { list-style: none; padding: 0; margin: 18px 0; counter-reset: step; }
-.coach-steps li { padding: 14px 0; border-bottom: 1px solid var(--line); counter-increment: step; }
+.coach-steps li { padding: 14px 0; counter-increment: step; }
 .coach-step-top { display: flex; justify-content: space-between; gap: 12px; font-size: 11px; color: var(--green); }
 .coach-step-top > span::before { content: counter(step, decimal-leading-zero) " / "; color: var(--muted); }
 .coach-step-top strong { font-weight: 500; font-variant-numeric: tabular-nums; }
@@ -157,10 +157,10 @@
 .training-shortcuts > button { min-height: 82px; padding: 14px 0; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; text-align: left; }
 .training-shortcuts span { display: block; font-size: 14px; font-weight: 500; }
 .training-shortcuts small { display: block; color: var(--muted); font-size: 11px; margin-top: 4px; }
-.training-drawer { position: fixed; inset: auto 0 0; margin: 0 auto; width: min(100%,720px); max-width: 100%; max-height: calc(var(--app-height,100dvh) - 28px); padding: 0; color: var(--ink); background: var(--canvas); border: 1px solid var(--line); border-bottom: 0; border-radius: 24px 24px 0 0; overscroll-behavior: contain; }
+.training-drawer { position: fixed; inset: auto 0 0; margin: 0 auto; width: min(100%,720px); max-width: 100%; max-height: calc(var(--app-height,var(--app-viewport-height)) - 28px); padding: 0; color: var(--ink); background: var(--canvas); border: 1px solid var(--line); border-bottom: 0; border-radius: 24px 24px 0 0; overscroll-behavior: contain; }
 .training-drawer[open] { animation: drawer-enter 180ms ease-out; }
 .training-drawer::backdrop { background: rgb(0 0 0 / .6); }
-.drawer-content { padding: 14px 20px calc(24px + env(safe-area-inset-bottom)); }
+.drawer-content { padding: 14px 20px calc(20px + var(--edge-bottom)); }
 .drawer-header { display: flex; align-items: center; justify-content: space-between; }
 .drawer-header h2 { font-size: 20px; }
 .drawer-tabs { display: flex; margin: 14px 0 20px; border-bottom: 1px solid var(--line); gap: 22px; }
@@ -233,7 +233,7 @@
   .drawer-content { padding-left: max(20px,env(safe-area-inset-left)); padding-right: max(20px,env(safe-area-inset-right)); }
 }
 @supports (-webkit-touch-callout: none) { .composer textarea { font-size: 16px; } }
-.training-drawer { bottom: max(0px,calc(100dvh - var(--app-height,100dvh) - var(--app-top,0px))); max-height: calc(var(--app-height,100dvh) - max(20px,env(safe-area-inset-top))); }
+.training-drawer { bottom: max(0px,calc(var(--app-viewport-height) - var(--app-height,var(--app-viewport-height)) - var(--app-top,0px))); max-height: calc(var(--app-height,var(--app-viewport-height)) - max(20px,env(safe-area-inset-top))); }
 @media (orientation: landscape) {
   .workspace { padding-left: max(20px,env(safe-area-inset-left)); padding-right: max(20px,env(safe-area-inset-right)); }
   .chat-home .workspace { padding: 0; }

@@ -611,3 +611,20 @@ func TestStructuredTextRejectsObjects(t *testing.T) {
 		t.Fatal("object proposal title accepted")
 	}
 }
+func TestVisualWindowDoesNotMislabelMonthAsWeek(t *testing.T) {
+	points := []any{}
+	for i := 0; i < 30; i++ {
+		date := time.Date(2026, 10, 25, 0, 0, 0, 0, time.UTC).AddDate(0, 0, -i).Format("2006-01-02")
+		points = append(points, M{"date": date, "value": i})
+	}
+	series := M{"key": "readiness", "points": points}
+	week := visualWindow(series, 7, "2026-10-25")
+	if len(array(week["points"])) != 7 || len(array(series["points"])) != 30 {
+		t.Fatal("wrong window or mutated history")
+	}
+	for _, v := range array(week["points"]) {
+		if str(object(v)["date"]) < "2026-10-19" {
+			t.Fatal("old measurement in week")
+		}
+	}
+}
