@@ -14,7 +14,7 @@ export function Today({controller,active,askCoach,openStrength,checkinRequest}:{
  const dates=state?[...new Set([...state.plan.workouts,...state.active_sessions].map(s=>s.date))].filter(d=>d>=state.today).sort():[];
  const next=state?dates.flatMap(d=>coursesFor(state,d)).find(s=>s.kind!=='rest'&&(!isGarmin(s)||s.status!=='completed'&&s.status!=='skipped')):null;
  const time=next&&isGarmin(next)?sessionTime(next):null;const pending=state?.proposals.filter(p=>p.status==='pending')||[];
- return <section id="today" className={`panel today-panel${active?' is-active':''}`} aria-labelledby="today-heading"><div className="page-heading"><div><p>{state?dateLabel(state.today):'今天'}</p><h1 id="today-heading">你的训练与恢复</h1></div><button className="quiet checkin-entry" disabled={!state} onClick={()=>setCheckinOpen(true)}>{state?.checkin?'更新体感':'记录体感'}</button></div>
+ return <section id="today" className={`panel today-panel${active?' is-active':''}`} aria-labelledby="today-heading"><div className="page-heading"><div><h1 id="today-heading">今天</h1><p>{state?dateLabel(state.today):''}</p></div><button className="quiet checkin-entry" disabled={!state} onClick={()=>setCheckinOpen(true)}>{state?.checkin?'更新体感':'记录体感'}</button></div>
  <ActivityFeed state={state} askCoach={askCoach}/>
  <HealthDashboard state={state} askCoach={askCoach}/>
  {pending.length>0&&<section className="today-proposals"><div className="today-section-title"><h2>待确认的调整</h2></div>{pending.map(p=><ProposalCard key={p.id} proposal={p} controller={controller}/>)}</section>}

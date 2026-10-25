@@ -64,7 +64,7 @@ export default function App() {
       const editing=document.activeElement?.matches('textarea,input,[contenteditable="true"]');const keyboard=Boolean(editing&&baseline-height>120);
       root.toggleAttribute('data-keyboard-open',keyboard);
       if(keyboard){root.style.setProperty('--app-height',`${height}px`);root.style.setProperty('--app-top',`${viewport?.offsetTop||0}px`)}
-      else{root.style.removeProperty('--app-height');root.style.removeProperty('--app-top')}
+      else{root.style.removeProperty('--app-height');root.style.removeProperty('--app-top');if(window.scrollY||window.scrollX)window.scrollTo({top:0,left:0,behavior:'instant'})}
     };
     sync();for(const event of ['resize','scroll'])viewport?.addEventListener(event,sync);
     for(const event of ['resize','pageshow','orientationchange'])window.addEventListener(event,sync);
@@ -91,7 +91,7 @@ export default function App() {
   return <div className={`app-shell${selected === 'coach' ? ' chat-home' : ''}`}>
     <a className="skip-link" href="#main-content">跳到内容</a>
     <header className="masthead"><a className="wordmark" href="#today" lang="en">Heracles<span className="brand-dot" aria-hidden="true">.</span></a>
-      <div className="masthead-actions"><button className="training-launch" aria-label="打开训练面板" onClick={() => setTrainingOpen(true)}>训练</button><button className="connection-status" disabled={!state || controller.syncBusy} onClick={() => void controller.syncGarmin()} aria-label="同步佳明数据">{loadError ? '连接中断' : controller.syncBusy ? '同步中' : state?.connection.garmin ? '已同步' : '待同步'}<span aria-hidden="true">↻</span></button></div></header>
+      <div className="masthead-actions"><button className="training-launch" aria-label="打开训练面板" onClick={() => setTrainingOpen(true)}>训练</button><button className="connection-status" disabled={!state || controller.syncBusy} onClick={() => void controller.syncGarmin()} aria-label={controller.syncBusy?'正在同步佳明数据':'同步佳明数据'} title={loadError?'连接中断':controller.syncBusy?'同步中':state?.connection.garmin?'已连接佳明':'待连接佳明'}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6 7a7 7 0 0 1 12-1l2 3M18 17a7 7 0 0 1-12 1l-2-3"/></svg></button></div></header>
     <div className="global-feedback" hidden={Boolean(state && !loadError)} role="status" aria-live="polite"><span>{loadError || '加载中…'}</span>{loadError && <button type="button" className="quiet" disabled={loading} onClick={() => void controller.reload()}>{loading ? '连接中…' : '重试'}</button>}</div>
     <main id="main-content" tabIndex={-1} className="workspace">
       <Today controller={controller} active={selected === 'today'} checkinRequest={checkinRequest} askCoach={askCoach} openStrength={() => setStrengthOpen(true)} />

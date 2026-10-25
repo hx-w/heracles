@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -98,6 +99,20 @@ func (s *Server) publish(w http.ResponseWriter, r *http.Request, identifier stri
 			return
 		}
 	}
+	prepared := []M{}
+	for _, v := range array(record["sessions"]) {
+		session := object(v)
+		if str(session["state"]) != "active" || str(session["kind"]) == "rest" {
+			continue
+		}
+		payload, e := workoutPayload(session, str(session["title"]))
+		if e != nil {
+			s.mu.Unlock()
+			errorJSON(w, 422, e.Error())
+			return
+		}
+		prepared = append(prepared, M{"session": session, "payload": payload})
+	}
 	receipt := M{"id": id(), "proposal_id": identifier, "status": "sending", "created_at": now(), "workouts": []any{}, "note": "独立课程已保存到佳明课程库；自适应原计划不变。请在佳明中选择并同步设备。"}
 	if e := s.Store.SaveRecord("exports", receipt); e != nil {
 		s.mu.Unlock()
@@ -114,19 +129,8 @@ func (s *Server) publish(w http.ResponseWriter, r *http.Request, identifier stri
 	defer cancel()
 	stop := context.AfterFunc(r.Context(), cancel)
 	defer stop()
-	for i, v := range array(record["sessions"]) {
-		session := object(v)
-		if str(session["state"]) != "active" || str(session["kind"]) == "rest" {
-			continue
-		}
-		payload, e := workoutPayload(session, fmt.Sprintf("Heracles %s %d · %s", identifier[:8], i+1, str(session["title"])))
-		if e != nil {
-			receipt["status"] = "error"
-			receipt["error"] = e.Error()
-			_ = s.Store.SaveRecord("exports", receipt)
-			errorJSON(w, 422, e.Error())
-			return
-		}
+	for _, item := range prepared {
+		session, payload := object(item["session"]), object(item["payload"])
 		result, e := s.Garmin.Request(ctx, "POST", "/workout-service/workout", payload)
 		if e != nil {
 			receipt["status"] = "unknown"
@@ -148,7 +152,7 @@ func (s *Server) publish(w http.ResponseWriter, r *http.Request, identifier stri
 			return
 		}
 		read, e := s.Garmin.Get(ctx, "/workout-service/workout/"+wid)
-		if e != nil || str(object(read)["workoutName"]) != str(payload["workoutName"]) {
+		if e != nil || !workoutMatches(payload, object(read)) {
 			receipt["status"] = "unknown"
 			if saveErr := s.Store.SaveRecord("exports", receipt); saveErr != nil {
 				errorJSON(w, 500, "无法保存核实状态，请先核对佳明课程库")
@@ -186,50 +190,166 @@ func workoutPayload(session M, name string) (M, error) {
 	order := 1
 	for _, v := range array(session["steps"]) {
 		step := object(v)
-		repeat := int(num(step["repeat"]))
-		if repeat < 1 {
-			repeat = 1
+		repeat := max(1, int(num(step["repeat"]))) * max(1, int(num(step["sets"])))
+		phase := str(step["phase"])
+		stepID := map[string]int{"warmup": 1, "cooldown": 2, "work": 3, "recovery": 4}[phase]
+		stepKey := phase
+		if phase == "work" {
+			stepKey = "interval"
 		}
-		sets := int(num(step["sets"]))
-		if sets < 1 {
-			sets = 1
+		condition, conditionID, value := "time", 2, step["duration_seconds"]
+		if step["distance_meters"] != nil {
+			condition, conditionID, value = "distance", 3, step["distance_meters"]
 		}
-		if sets > 1 {
-			repeat *= sets
+		if str(step["reps"]) != "" {
+			if strings.Contains(str(step["reps"]), "-") {
+				return nil, errors.New("发送力量课程前，需要明确每组次数，不能使用次数范围")
+			}
+			condition, conditionID, value = "reps", 10, num(step["reps"])
 		}
-		for n := 0; n < repeat; n++ {
-			phase := str(step["phase"])
-			stepID := map[string]int{"warmup": 1, "cooldown": 2, "work": 3, "recovery": 4}[phase]
-			stepKey := phase
-			if phase == "work" {
-				stepKey = "interval"
+		work := M{"type": "ExecutableStepDTO", "stepType": M{"stepTypeId": stepID, "stepTypeKey": stepKey}, "endCondition": M{"conditionTypeId": conditionID, "conditionTypeKey": condition}, "endConditionValue": value, "targetType": M{"workoutTargetTypeId": 1, "workoutTargetTypeKey": "no.target"}, "description": stepDescription(step)}
+		if kind == "strength" && phase != "recovery" {
+			pair, ok := garminExercise(step)
+			if !ok {
+				return nil, fmt.Errorf("动作“%s”尚无准确的佳明动作映射，请在本站训练或换用目录中的动作", str(step["title"]))
 			}
-			condition, conditionID := "time", 2
-			value := step["duration_seconds"]
-			if step["distance_meters"] != nil {
-				condition, conditionID, value = "distance", 3, step["distance_meters"]
+			work["category"], work["exerciseName"] = pair[0], pair[1]
+			if step["load_kg"] != nil {
+				work["weightValue"] = step["load_kg"]
+				work["weightUnit"] = M{"unitId": 8, "unitKey": "kilogram", "factor": 1000}
 			}
-			if str(step["reps"]) != "" {
-				if strings.Contains(str(step["reps"]), "-") {
-					return nil, errors.New("发送力量课程前，需要明确每组次数，不能使用次数范围")
-				}
-				condition, conditionID, value = "reps", 10, num(step["reps"])
-			}
-			out = append(out, M{"type": "ExecutableStepDTO", "stepOrder": order, "stepType": M{"stepTypeId": stepID, "stepTypeKey": stepKey}, "endCondition": M{"conditionTypeId": conditionID, "conditionTypeKey": condition}, "endConditionValue": value, "targetType": M{"workoutTargetTypeId": 1, "workoutTargetTypeKey": "no.target"}, "description": stepDescription(step)})
+		}
+		if repeat > 1 {
+			group := M{"type": "RepeatGroupDTO", "stepOrder": order, "stepType": M{"stepTypeId": 6, "stepTypeKey": "repeat"}, "endCondition": M{"conditionTypeId": 7, "conditionTypeKey": "iterations"}, "numberOfIterations": repeat, "smartRepeat": false}
 			order++
-			if rest := num(step["rest_seconds"]); rest > 0 && n < repeat-1 {
-				out = append(out, M{"type": "ExecutableStepDTO", "stepOrder": order, "stepType": M{"stepTypeId": 4, "stepTypeKey": "recovery"}, "endCondition": M{"conditionTypeId": 2, "conditionTypeKey": "time"}, "endConditionValue": rest, "targetType": M{"workoutTargetTypeId": 1, "workoutTargetTypeKey": "no.target"}})
+			work["stepOrder"] = order
+			order++
+			children := []any{work}
+			if rest := num(step["rest_seconds"]); rest > 0 {
+				group["skipLastRestStep"] = true
+				children = append(children, garminRest(order, rest))
 				order++
 			}
+			group["workoutSteps"] = children
+			out = append(out, group)
+		} else {
+			work["stepOrder"] = order
+			order++
+			out = append(out, work)
 		}
 	}
-	return M{"workoutName": name, "description": "Heracles 独立课程。" + str(session["reason"]) + " 停止条件：" + str(session["stop_conditions"]), "sportType": sport, "workoutSegments": []any{M{"segmentOrder": 1, "sportType": sport, "workoutSteps": out}}}, nil
+	return M{"workoutName": strings.TrimSpace(name), "description": shortWorkoutNote(str(session["stop_conditions"]), 100), "sportType": sport, "workoutSegments": []any{M{"segmentOrder": 1, "sportType": sport, "workoutSteps": out}}}, nil
 }
 
-func stepDescription(step M) string {
-	text := str(step["title"]) + "。" + str(step["target"]) + "。" + str(step["instructions"])
-	if step["load_kg"] != nil {
-		text += fmt.Sprintf("。负重 %g kg", num(step["load_kg"]))
+func garminRest(order int, seconds float64) M {
+	return M{"type": "ExecutableStepDTO", "stepOrder": order, "stepType": M{"stepTypeId": 4, "stepTypeKey": "recovery"}, "endCondition": M{"conditionTypeId": 2, "conditionTypeKey": "time"}, "endConditionValue": seconds, "targetType": M{"workoutTargetTypeId": 1, "workoutTargetTypeKey": "no.target"}}
+}
+
+// Native keys come from Garmin's exercise catalogue, never model-generated enums.
+var garminExercises = map[string][2]string{
+	"bench-press":            {"BENCH_PRESS", "BARBELL_BENCH_PRESS"},
+	"lat-pulldown":           {"PULL_UP", "CLOSE_GRIP_LAT_PULLDOWN"},
+	"goblet-squat":           {"SQUAT", "GOBLET_SQUAT"},
+	"lying-leg-curl":         {"LEG_CURL", "LEG_CURL"},
+	"leg-press":              {"SQUAT", "LEG_PRESS"},
+	"plank":                  {"PLANK", "PLANK"},
+	"romanian-deadlift":      {"DEADLIFT", "ROMANIAN_DEADLIFT"},
+	"seated-cable-row":       {"ROW", "SEATED_CABLE_ROW"},
+	"incline-dumbbell-press": {"BENCH_PRESS", "INCLINE_DUMBBELL_BENCH_PRESS"},
+	"hammer-curl":            {"CURL", "DUMBBELL_HAMMER_CURL"},
+	"machine-row":            {"ROW", "ROW"},
+}
+
+func garminExercise(step M) ([2]string, bool) {
+	if id := str(step["exercise_id"]); id != "" {
+		pair, ok := garminExercises[id]
+		return pair, ok
+	}
+	// Old adopted mixed sessions can retain their prescribed run/walk inside a strength course.
+	switch str(step["title"]) {
+	case "轻松跑", "跑步", "慢跑":
+		return [2]string{"RUN", "RUN"}, true
+	case "慢走", "快走", "步行", "慢走与拉伸":
+		return [2]string{"RUN", "WALK"}, true
+	}
+	if str(step["phase"]) == "warmup" {
+		return [2]string{"WARM_UP", ""}, true
+	}
+	return [2]string{}, false
+}
+
+var setCountInNote = regexp.MustCompile(`\d+组\s*[×xX*]\s*\d+\s*(?:次|秒)?`)
+
+func shortWorkoutNote(text string, limit int) string {
+	text = strings.TrimSpace(text)
+	r := []rune(text)
+	if len(r) > limit {
+		text = string(r[:limit-1]) + "…"
 	}
 	return text
+}
+func stepDescription(step M) string {
+	target := strings.Trim(setCountInNote.ReplaceAllString(str(step["target"]), ""), "，。；、 ")
+	instruction := strings.FieldsFunc(str(step["instructions"]), func(r rune) bool { return r == '。' || r == '；' || r == '\n' })
+	parts := []string{}
+	if target != "" {
+		parts = append(parts, target)
+	}
+	if len(instruction) > 0 && instruction[0] != "" {
+		parts = append(parts, instruction[0])
+	}
+	return shortWorkoutNote(strings.Join(parts, "；"), 80)
+}
+
+// Readback must confirm the fields the device actually uses, not just the course title.
+func workoutMatches(expected, actual M) bool {
+	if str(expected["workoutName"]) != str(actual["workoutName"]) || str(expected["description"]) != str(actual["description"]) {
+		return false
+	}
+	if str(object(expected["sportType"])["sportTypeKey"]) != str(object(actual["sportType"])["sportTypeKey"]) {
+		return false
+	}
+	a, b := array(expected["workoutSegments"]), array(actual["workoutSegments"])
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if !workoutStepsMatch(array(object(a[i])["workoutSteps"]), array(object(b[i])["workoutSteps"])) {
+			return false
+		}
+	}
+	return true
+}
+func workoutStepsMatch(expected, actual []any) bool {
+	if len(expected) != len(actual) {
+		return false
+	}
+	for i := range expected {
+		a, b := object(expected[i]), object(actual[i])
+		for _, key := range []string{"type", "category", "exerciseName", "description"} {
+			if a[key] != nil && str(a[key]) != str(b[key]) {
+				return false
+			}
+		}
+		for _, key := range []string{"stepOrder", "endConditionValue", "numberOfIterations", "weightValue"} {
+			if a[key] != nil && (b[key] == nil || num(a[key]) != num(b[key])) {
+				return false
+			}
+		}
+		for _, ref := range []string{"stepType", "endCondition", "targetType", "weightUnit"} {
+			for key, value := range object(a[ref]) {
+				got := object(b[ref])[key]
+				if got == nil || (isNumber(value) && num(value) != num(got)) || (!isNumber(value) && str(value) != str(got)) {
+					return false
+				}
+			}
+		}
+		if boolean(a["skipLastRestStep"]) && !boolean(b["skipLastRestStep"]) {
+			return false
+		}
+		if !workoutStepsMatch(array(a["workoutSteps"]), array(b["workoutSteps"])) {
+			return false
+		}
+	}
+	return true
 }

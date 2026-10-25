@@ -148,7 +148,7 @@ func (s *Server) Context() M {
 	if len(logs) > 20 {
 		logs = logs[:20]
 	}
-	return M{"today": today(), "timezone": "Asia/Shanghai", "profile": s.Store.Get("profile", DefaultProfile()), "plan": s.Store.Get("plan", EmptyPlan()), "checkin": s.Store.Get("checkin:"+today(), nil), "active_sessions": active, "history": clean, "health": privateData(health), "recent_activity_details": details, "training_logs": logs, "visualization_catalog": s.VisualCatalog(), "health_changes": healthChanges(s.VisualCatalog()), "exercise_catalog": s.Exercises}
+	return M{"today": today(), "timezone": "Asia/Shanghai", "profile": s.Store.Get("profile", DefaultProfile()), "plan": s.Store.Get("plan", EmptyPlan()), "checkin": s.Store.Get("checkin:"+today(), nil), "profile_configured": s.Store.Get("profile", nil) != nil, "active_sessions": active, "history": clean, "health": privateData(health), "recent_activity_details": details, "training_logs": logs, "visualization_catalog": s.VisualCatalog(), "health_changes": healthChanges(s.VisualCatalog()), "exercise_catalog": s.Exercises}
 }
 func (s *Server) tool(ctx context.Context, t M) (any, error) {
 	switch str(t["action"]) {

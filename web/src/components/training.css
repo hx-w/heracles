@@ -1,27 +1,27 @@
 .plan-overview { padding: 16px 18px; background: var(--paper); border-radius: 16px; margin-bottom: 22px; }
 .plan-overview h2 { font-size: 18px; line-height: 1.5; margin: 0 0 12px; font-weight: 580; }
-.plan-summary { display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:13px;color:var(--muted) }
+.plan-summary { display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:14px;color:var(--muted) }
 .plan-summary > span:first-child { color:var(--green) }.plan-summary strong {font-weight:600;color:var(--ink)}
 .week-picker { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 4px; margin: 20px 0 24px; }
 .week-picker button { min-width: 0; min-height: 68px; padding: 7px 0; border: 1px solid transparent; background: transparent; display: flex; align-items: center; flex-direction: column; gap: 3px; }
-.week-picker button > span:first-child { font-size: 12px; color: var(--muted); }
+.week-picker button > span:first-child { font-size:14px; color: var(--muted); }
 .week-picker strong { font-size: 20px; font-weight: 550; }
 .week-picker button[aria-pressed=true] { background: var(--soft-green); border-color: transparent; }
 .week-picker button[aria-pressed=true] strong { color: var(--green); }
 .day-marks { display: flex; justify-content: center; min-height: 6px; gap: 3px; }
 .day-marks i { width: 4px; height: 4px; border-radius: 50%; background: var(--green); }
-.day-marks i.sport-strength { background: #a5b9e2; }.day-marks i.sport-cycling {background:#d3b8e4}.day-marks i.sport-rest {background:var(--muted)}
+.day-marks i.sport-strength { background: #4c6398; }.day-marks i.sport-cycling {background:#79528d}.day-marks i.sport-rest {background:var(--muted)}
 .course-row { display: flex; align-items: center; width: 100%; min-width: 0; padding: 18px 0; gap: 14px; text-align: left; border: 0;  border-radius: 0; background: transparent; }
-.course-sport { font-size: 12px; color: var(--green); flex-shrink: 0; width: 32px; }
-.sport-strength .course-sport { color: #a5b9e2; }.sport-cycling .course-sport { color: #d3b8e4; }
-.course-row-main { flex: 1; min-width: 0; }.course-row-main strong {display:block;font-size:17px;font-weight:550;overflow-wrap:anywhere}.course-row-main > span {display:block;color:var(--muted);font-size:13px;margin-top:5px}
+.course-sport { font-size:14px; color: var(--green); flex-shrink: 0; width: 32px; }
+.sport-strength .course-sport { color: #4c6398; }.sport-cycling .course-sport { color: #79528d; }
+.course-row-main { flex: 1; min-width: 0; }.course-row-main strong {display:block;font-size:17px;font-weight:550;overflow-wrap:anywhere}.course-row-main > span {display:block;color:var(--muted);font-size:14px;margin-top:5px}
 .course-arrow { color: var(--muted); font-size: 21px; }
 .plan-empty { padding: 24px 0; }.plan-empty h3 {font-size:16px}.plan-empty p {color:var(--muted);font-size:14px;margin-top:8px}
 .plan-disclosure { margin-top: 20px;  padding-top: 8px; }
 .plan-disclosure > summary { display: flex; align-items: center; font-size: 14px; color: var(--muted); }
-.phase-timeline { padding: 0; list-style: none; margin: 8px 0 20px; }.phase-timeline li {display:flex;justify-content:space-between;gap:12px;padding:12px 0;font-size:13px;color:var(--muted)}.phase-timeline .current {color:var(--green)}
+.phase-timeline { padding: 0; list-style: none; margin: 8px 0 20px; }.phase-timeline li {display:flex;justify-content:space-between;gap:12px;padding:12px 0;font-size:14px;color:var(--muted)}.phase-timeline .current {color:var(--green)}
 .course-sheet .training-session-heading { margin: 18px 0; }.course-sheet h3,.course-sheet-name {font-size:24px;font-weight:580;line-height:1.5;margin:16px 0 10px}.course-sheet .training-session-heading p,.course-sheet-reason {font-size:14px;color:var(--muted)}
-.training-targets { margin: 16px 0; font-size: 14px; }.training-targets > div {display:grid;grid-template-columns:64px minmax(0,1fr);gap:12px;padding:9px 0;}.training-targets dt {color:var(--muted)}.training-targets dd {margin:0;overflow-wrap:anywhere;white-space:pre-wrap}.training-secondary-value {display:block;color:var(--muted);font-size:12px}
-.training-description h4,.training-step-section h4 {font-size:15px}.training-description p {font-size:14px}.training-step-section {margin-top:24px}.training-chart-note {font-size:13px;color:var(--muted)}
+.training-targets { margin: 16px 0; font-size: 14px; }.training-targets > div {display:grid;grid-template-columns:64px minmax(0,1fr);gap:12px;padding:9px 0;}.training-targets dt {color:var(--muted)}.training-targets dd {margin:0;overflow-wrap:anywhere;white-space:pre-wrap}.training-secondary-value {display:block;color:var(--muted);font-size:14px}
+.training-description h4,.training-step-section h4 {font-size:15px}.training-description p {font-size:14px}.training-step-section {margin-top:24px}.training-chart-note {font-size:14px;color:var(--muted)}
 .pending-adjustments > summary {color:var(--green);font-size:14px;display:flex;align-items:center}
 .goal-edit > summary { display:flex;align-items:center;min-height:44px;font-size:14px;color:var(--green) }

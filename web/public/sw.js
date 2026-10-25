@@ -3,15 +3,15 @@ const OFFLINE_PAGE = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#111412">
+<meta name="theme-color" content="#f6f7f4">
 <title>Heracles · 离线</title>
 <style>
-:root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif; color: #c3e88d; background: #111412; }
+:root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif; color: #245d42; background: #f6f7f4; }
 body { margin: 0; min-height: 100vh; display: grid; place-items: center; }
 main { padding: 32px; text-align: center; }
 h1 { margin: 0 0 24px; font-size: 28px; }
-p { color: #a0a99e; font-size: 18px; margin: 0 0 28px; }
-a { display: inline-block; padding: 12px 24px; background: #c3e88d; color: #182014; border-radius: 12px; text-decoration: none; }
+p { color: #58665d; font-size: 18px; margin: 0 0 28px; }
+a { display: inline-block; padding: 12px 24px; background: #245d42; color: #ffffff; border-radius: 12px; text-decoration: none; }
 a:focus-visible { outline: 3px solid #c3e88d; outline-offset: 4px; }
 </style>
 </head>
