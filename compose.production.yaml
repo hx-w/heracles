@@ -1,0 +1,20 @@
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    environment:
+      HERACLES_DOMAIN: ${HERACLES_DOMAIN:?Set HERACLES_DOMAIN in .env}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      heracles:
+        condition: service_healthy
+volumes:
+  caddy_data:
+  caddy_config:

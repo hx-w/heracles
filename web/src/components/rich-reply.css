@@ -1,0 +1,44 @@
+.rich-reply { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.rich-reply .reply-markdown { min-width: 0; max-width: 100%; font-size: 16px; line-height: 1.8; }
+.rich-reply .reply-markdown + .reply-markdown { margin-top: 12px; }
+.rich-reply .reply-markdown p { white-space: pre-wrap; margin: 0 0 12px; }
+.rich-reply .reply-markdown p:last-child { margin-bottom: 0; }
+.rich-reply .reply-markdown :is(h1,h2,h3,h4,h5,h6) { font-size: 17px; line-height: 1.6; margin: 18px 0 8px; font-weight: 600; }
+.rich-reply .reply-markdown :is(ul,ol) { margin: 8px 0 12px; padding-left: 24px; }
+.rich-reply .reply-markdown li { margin: 6px 0; }
+.rich-reply .reply-markdown li::marker { color: var(--muted); }
+.rich-reply .reply-markdown li > p { margin-bottom: 6px; }
+.rich-reply .reply-markdown a { text-decoration: underline; text-underline-offset: 3px; }
+.rich-reply .reply-markdown blockquote { margin: 12px 0; padding: 8px 12px; background: var(--canvas); color: var(--muted); }
+.rich-reply .reply-markdown pre { max-width: 100%; overflow-x: auto; padding: 12px; background: var(--canvas); border-radius: var(--radius-small); }
+.rich-reply .reply-markdown code { font-size: .9em; overflow-wrap: anywhere; }
+.rich-reply .reply-markdown pre code { white-space: pre; }
+.rich-reply .reply-markdown input[type=checkbox] { display: inline-block; width: 16px; height: 16px; min-height: 0; margin: 0 6px 0 0; }
+.rich-reply .reply-table-scroll { width: 100%; max-width: 100%; min-width: 0; overflow-x: auto; margin: 12px 0; overscroll-behavior-x: contain; }
+.rich-reply table { border-collapse: collapse; width: 100%; font-size: 14px; line-height: 1.65; font-variant-numeric: tabular-nums; }
+.rich-reply :is(th,td) { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; min-width: 100px; overflow-wrap: anywhere; }
+.rich-reply th { font-weight: 600; }
+.rich-reply thead { background: var(--canvas); }
+.rich-reply .reply-metric-table td, .rich-reply .reply-metric-table thead th:not(:first-child) { text-align: right; min-width: 104px; }
+.rich-reply .reply-metric-table th:first-child { min-width: 64px; white-space: nowrap; }
+.rich-reply .reply-visual { min-width: 0; margin: 20px 0; padding: 16px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.rich-reply .reply-visual h3 { font-size: 17px; line-height: 1.6; }
+.rich-reply .reply-visual-note, .rich-reply .reply-provenance { color: var(--muted); font-size: 12px; line-height: 1.7; }
+.rich-reply .reply-provenance { display: block; margin-top: 4px; overflow-wrap: anywhere; }
+.rich-reply .reply-visual label { margin: 12px 0 4px; }
+.rich-reply .reply-visual select { display: block; width: 100%; max-width: 100%; min-height: 44px; text-overflow: clip; }
+.rich-reply .reply-metric-label { margin-top: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.rich-reply .reply-chart { display: block; width: 100%; max-width: 540px; height: auto; margin-top: 8px; touch-action: pan-y; user-select: none; }
+.rich-reply .reply-chart text { fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.rich-reply .reply-chart-grid { stroke: var(--line); stroke-width: 1; }
+.rich-reply .reply-chart-line { stroke: var(--green); stroke-width: 2; fill: none; stroke-linejoin: round; stroke-linecap: round; }
+.rich-reply .reply-chart-dot { fill: var(--green); stroke: var(--paper); stroke-width: 1.5; }
+.rich-reply .reply-chart-gap { stroke: var(--muted); stroke-width: 1.5; }
+.rich-reply .reply-chart-selection { stroke: var(--green); stroke-width: 1; stroke-dasharray: 3 4; opacity: .45; }
+.rich-reply .reply-chart-empty { margin: 14px 0; padding: 12px 0; color: var(--muted); font-size: 14px; }
+.rich-reply .reply-inspection { margin-top: 10px; min-width: 0; font-variant-numeric: tabular-nums; }
+.rich-reply .reply-source-details { margin-top: 8px; font-size: 13px; }
+.rich-reply .reply-source-details summary { color: var(--muted); display: flex; align-items: center; min-height: 44px; }
+.rich-reply .reply-source-details[open] > .reply-visual-note { margin-top: 10px; }
+.rich-reply .reply-inspection strong { font-weight: 600; }
+.rich-reply .reply-markdown hr { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }

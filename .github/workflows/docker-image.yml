@@ -1,0 +1,42 @@
+name: Docker image
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build Linux amd64 image
+        run: >-
+          docker build
+          --label org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          --label org.opencontainers.image.revision=${{ github.sha }}
+          --label org.opencontainers.image.licenses=MIT
+          --tag heracles:latest .
+      - name: Save deployment image
+        shell: bash
+        if: github.event_name != 'pull_request'
+        run: docker save heracles:latest | gzip > heracles-image.tar.gz
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: github.event_name != 'pull_request'
+        with:
+          name: heracles-linux-amd64
+          path: heracles-image.tar.gz
+          retention-days: 14
+          compression-level: 0
+          if-no-files-found: error

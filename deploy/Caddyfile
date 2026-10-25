@@ -1,0 +1,4 @@
+{$HERACLES_DOMAIN} {
+    encode zstd gzip
+    reverse_proxy heracles:8791
+}

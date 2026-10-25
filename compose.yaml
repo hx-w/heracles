@@ -1,0 +1,25 @@
+services:
+  heracles:
+    build: .
+    image: heracles:latest
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${HERACLES_PORT:-8791}:8791'
+    environment:
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      FORWARDED_ALLOW_IPS: '*'
+    volumes:
+      - heracles_data:/data
+    init: true
+    stop_grace_period: 20s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+volumes:
+  heracles_data:

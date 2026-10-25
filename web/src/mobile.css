@@ -1,0 +1,143 @@
+/* Quiet mobile control surface: graphite, botanical lime, system typography. */
+.masthead { max-width: 1120px; width: 100%; align-self: center; min-height: 76px; }
+.connection-status { display: flex; align-items: center; gap: 10px; border: 0; background: transparent; color: var(--muted); padding: 8px 0 8px 12px; font-size: 12px; }
+.connection-status span { font-size: 21px; }
+.navigation { margin: 0; padding-top: 6px; background: var(--canvas); }
+.navigation a { min-height: 52px; gap: 5px; }
+.navigation a[aria-current="page"] { color: var(--green); }
+.navigation svg { width: 21px; height: 21px; }
+.workspace { padding-top: 14px; }
+.day-heading { padding: 14px 2px 34px; }
+.day-heading > p { font-size: 12px; color: var(--muted); letter-spacing: .015em; }
+.day-heading > p span { padding-inline: 8px; color: #70796b; }
+.day-heading h1 { margin-top: 12px; font-size: clamp(26px, 6.8vw, 34px); font-weight: 560; letter-spacing: -.035em; line-height: 1.45; }
+.today-section-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.today-section-title h2 { font-size: 16px; font-weight: 560; }
+.today-section-title > span, .today-section-title a { font-size: 12px; color: var(--muted); }
+.today-section-title a { display: inline-flex; align-items: center; min-height: 40px; gap: 8px; }
+.today-workout { background: var(--paper); border-radius: var(--radius-surface); padding: 24px; }
+.today-workout + .today-workout { margin-top: 12px; }
+.workout-eyebrow { display: flex; justify-content: space-between; gap: 12px; font-size: 11px; color: var(--muted); }
+.workout-eyebrow > span:first-child { letter-spacing: .08em; }
+.today-workout h2 { font-size: 27px; margin: 16px 0 10px; font-weight: 560; letter-spacing: -.022em; }
+.workout-duration { font-size: 27px; line-height: 1.6; color: var(--green); font-variant-numeric: tabular-nums; }
+.workout-duration span { font-size: 11px; color: var(--muted); margin-left: 12px; }
+.workout-description { white-space: pre-wrap; overflow-wrap: anywhere; color: var(--muted); margin-top: 12px; font-size: 14px; }
+.workout-footer { display: flex; justify-content: space-between; gap: 12px; padding-top: 20px; margin-top: 20px; border-top: 1px solid var(--line); font-size: 12px; }
+.workout-footer > span { color: var(--muted); }
+.empty-workout { padding-top: 24px; }
+.empty-workout > p { color: var(--muted); font-size: 14px; margin-bottom: 24px; max-width: 48ch; }
+.empty-workout > button { width: 100%; display: flex; justify-content: space-between; gap: 12px; }
+.adjusted-workout > p { color: var(--muted); font-size: 14px; }
+.adjusted-workout > details { margin-top: 16px; }
+.adjusted-workout summary { display: flex; justify-content: space-between; align-items: center; color: var(--green); }
+.adjusted-workout > a { display: inline-flex; align-items: center; min-height: 44px; font-size: 12px; }
+.coach-entry { display: flex; align-items: center; width: 100%; gap: 14px; border: 0; padding: 22px 2px 26px; background: transparent; text-align: left; }
+.coach-entry > span:nth-child(2) { flex: 1; min-width: 0; }
+.coach-entry strong, .coach-entry small { display: block; }
+.coach-entry strong { font-size: 14px; font-weight: 500; }
+.coach-entry small { color: var(--muted); font-size: 12px; margin-top: 3px; }
+.coach-entry > span:last-child { color: var(--muted); font-size: 21px; }
+.coach-glyph { font-size: 33px; color: var(--green); line-height: 1; }
+.readiness-section { margin-top: 8px; }
+.body-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 20px; border-top: 1px solid var(--line); }
+.body-metric { padding: 16px 0; border-bottom: 1px solid var(--line); min-width: 0; }
+.body-metric > span { display: block; font-size: 12px; color: var(--muted); }
+.body-metric strong { display: block; font-size: 25px; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1.8; }
+.body-metric strong small { font-size: 11px; font-weight: 400; padding-left: 6px; color: var(--muted); }
+.body-metric > .metric-age { font-size: 10px; overflow-wrap: anywhere; }
+.checkin-section { margin-top: 30px; }
+.checkin-form { margin-top: 0; }
+.checkin-form label { font-size: 13px; }
+.label-hint { float: right; color: var(--muted); font-size: 11px; line-height: 24px; }
+.fatigue-options { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.fatigue-options button { font-size: 17px; padding: 9px; background: transparent; }
+.fatigue-options button[aria-pressed="true"] { background: var(--soft-green); border-color: var(--green); color: var(--green); }
+.checkin-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.checkin-fields select { width: 100%; }
+.minutes-input { display: flex; align-items: center; border: 1px solid var(--line); border-radius: var(--radius-control); background: var(--paper); }
+.minutes-input input { border: 0; background: transparent; width: 100%; padding-right: 0; }
+.minutes-input > span { font-size: 12px; color: var(--muted); padding-right: 12px; flex-shrink: 0; }
+.checkin-form textarea { margin-top: 16px; font-size: 14px; padding: 14px; }
+.checkin-actions { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.checkin-actions .primary { flex: 1; font-size: 13px; }
+.checkin-actions .quiet { font-size: 13px; }
+.text-button { padding: 0 4px; min-height: 40px; color: var(--green); font-size: 12px; border: 0; background: transparent; }
+.checkin-saved { padding: 18px 0; border-block: 1px solid var(--line); }
+.checkin-saved > p { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.checkin-saved small { display: block; font-size: 11px; color: var(--muted); margin-top: 8px; }
+.checkin-saved button { margin-top: 16px; font-size: 13px; }
+.today-proposals { margin-top: 28px; }
+.today-footnote { text-align: center; font-size: 11px; color: var(--muted); padding: 38px 0 8px; }
+.sync-warning { font-size: 12px; color: var(--orange); margin-bottom: 14px; }
+.coach-topline { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px 16px; border-bottom: 1px solid var(--line); gap: 12px; }
+.coach-topline > div { display: flex; align-items: center; gap: 10px; }
+.coach-topline .coach-glyph { font-size: 26px; }
+.coach-topline h1 { font-size: 15px; font-weight: 500; }
+.coach-topline > span { font-size: 11px; color: var(--muted); }
+.coach-empty-glyph { font-size: 55px; color: var(--green); line-height: 1; margin-bottom: 20px; }
+.conversation-empty h2 { font-size: 30px; line-height: 1.6; letter-spacing: -.03em; }
+.conversation-empty > p { color: var(--muted); font-size: 13px; max-width: 35ch; margin: 16px 0 26px; }
+.suggested-prompts { display: flex; flex-direction: column; width: 100%; }
+.suggested-prompts button { background: transparent; border: 0; border-top: 1px solid var(--line); border-radius: 0; padding: 14px 0; font-size: 13px; display: flex; align-items: center; justify-content: space-between; text-align: left; gap: 10px; }
+.suggested-prompts button span { color: var(--muted); }
+.message-author { display: block; font-size: 11px; color: var(--green); margin-bottom: 10px; }
+.message-assistant { padding-right: 0; }
+.message-user .message-body { background: var(--paper); border-radius: 18px 18px 4px 18px; font-size: 15px; }
+.composer { background: var(--paper); border: 0; border-radius: 24px; }
+.composer textarea { font-size: 15px; }
+.send-button { border-radius: 50%; }
+.chat-form .feedback { font-size: 12px; }
+.proposal-card { margin: 18px 0 24px; padding: 22px; border: 1px solid var(--line); border-radius: var(--radius-surface); background: var(--paper); }
+.proposal-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 14px; font-size: 11px; color: var(--muted); margin-bottom: 12px; }
+.source-label { color: var(--green); }
+.proposal-card h3 { font-size: 21px; font-weight: 550; letter-spacing: -.02em; }
+.proposal-rationale { margin: 10px 0 20px; font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.proposal-session { border-top: 1px solid var(--line); }
+.proposal-session summary { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; gap: 12px; }
+.proposal-session summary small { display: block; font-size: 11px; color: var(--muted); }
+.proposal-session summary strong { display: block; font-size: 15px; font-weight: 500; }
+.proposal-session[open] summary > span:last-child { transform: rotate(45deg); }
+.plan-comparison { display: grid; grid-template-columns: 1fr; gap: 14px; padding: 16px; border-radius: var(--radius-control); background: var(--canvas); }
+.plan-comparison > div > span { font-size: 11px; color: var(--muted); }
+.plan-comparison > div > p { font-size: 13px; margin-top: 5px; overflow-wrap: anywhere; }
+.plan-comparison small { font-size: 11px; color: var(--muted); }
+.coach-steps { list-style: none; padding: 0; margin: 18px 0; counter-reset: step; }
+.coach-steps li { padding: 14px 0; border-bottom: 1px solid var(--line); counter-increment: step; }
+.coach-step-top { display: flex; justify-content: space-between; gap: 12px; font-size: 11px; color: var(--green); }
+.coach-step-top > span::before { content: counter(step, decimal-leading-zero) " / "; color: var(--muted); }
+.coach-step-top strong { font-weight: 500; font-variant-numeric: tabular-nums; }
+.coach-steps h4 { margin: 6px 0 4px; font-size: 15px; font-weight: 500; }
+.coach-steps p { font-size: 13px; overflow-wrap: anywhere; }
+.coach-steps .step-instruction { color: var(--muted); margin-top: 5px; }
+.stop-condition { padding: 4px 0 20px; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.stop-condition span { display: block; color: var(--ink); margin-bottom: 5px; }
+.rest-instruction { padding: 18px 0; font-size: 14px; }
+.proposal-scope { margin-top: 20px; color: var(--muted); font-size: 11px; }
+.proposal-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 14px; }
+.proposal-actions > button { font-size: 13px; }
+.proposal-actions > p { flex-basis: 100%; font-size: 13px; color: var(--muted); }
+.proposal-history { margin-top: 32px; font-size: 13px; color: var(--muted); }
+.training-plan .training-metadata { margin-top: 22px; }
+@media (min-width: 760px) {
+  .navigation { order: 2; border-bottom: 0; border-top: 1px solid var(--line); padding: 8px 24px 12px; }
+  .navigation a { flex: none; min-width: 112px; flex-direction: row; gap: 10px; font-size: 13px; }
+  .today-panel { max-width: 700px; }
+  .day-heading { padding-top: 18px; }
+  .day-heading h1 { font-size: 37px; }
+  .body-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+  .today-workout { padding: 30px; }
+  .plan-comparison { grid-template-columns: 1fr 1fr; }
+  .coach-topline { padding-inline: 24px; }
+}
+@media (max-width: 359px) {
+  .today-workout { padding: 20px; }
+  .proposal-card { padding: 16px; }
+  .coach-topline { padding-inline: 16px; }
+  .label-hint { float: none; display: block; }
+  .checkin-fields { gap: 10px; }
+  .checkin-actions { flex-direction: column-reverse; }
+  .day-heading > p { font-size: 11px; }
+}
+.connection-help { margin: 0 0 18px; color: var(--muted); font-size: 12px; }
+.connection-help a { display: inline-flex; min-height: 40px; align-items: center; margin-left: 6px; }
