@@ -11,7 +11,10 @@ import './rich-reply.css';
 
 function AssistantReply({ message }: { message: Message }) {
   return <div className="reply-content rich-reply" lang="zh">
-    {message.content && <ReplyMarkdown content={message.content} />}
+    {message.content && <div className="coach-verdict"><ReplyMarkdown content={message.content}/></div>}
+    {Boolean(message.highlights?.length)&&<div className="reply-highlights">{message.highlights?.map((h,i)=><div className={`reply-highlight highlight-${h.kind}`} key={i}><span>{h.label}</span><strong>{h.text}</strong></div>)}</div>}
+    {message.comparisons?.map((c,i)=><section className="reply-comparison" key={i}><h2>{c.title}</h2>{c.items.map((row,j)=><div className="comparison-row" key={j}><h3>{row.label}</h3><div><span>原先</span><strong>{row.before}</strong></div><div><span>建议 / 现在</span><strong>{row.after}</strong></div></div>)}</section>)}
+    {Boolean(message.actions?.length)&&<section className="reply-actions"><h2>接下来怎么做</h2>{message.actions?.map((a,i)=><article key={i}><div><span className="action-number">{i+1}</span><h3>{a.title}</h3>{a.when&&<span className="action-when">{a.when}</span>}</div><ul>{a.steps.map((step,j)=><li key={j}><ReplyMarkdown content={step}/></li>)}</ul></article>)}</section>}
     {message.exercises?.map(exercise => <ExerciseCard key={exercise.id} exercise={exercise} compact />)}
     <ReplyVisuals visuals={message.visuals || []} />
     {message.sections?.map((section, index) => <section key={index} className="reply-section">
@@ -33,17 +36,9 @@ export function CoachChat({ controller, active, prompt }: { controller: CoachCon
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const followLatest = useRef(true);
   const messageCount = state?.messages.length || 0;
-  useEffect(() => {
-    if (active) {
-      followLatest.current = true;
-      const messages = messagesRef.current;
-      if (messages) messages.scrollTop = messages.scrollHeight;
-    }
-  }, [active, Boolean(state)]);
-  useEffect(() => {
-    const messages = messagesRef.current;
-    if (active && messages && followLatest.current) messages.scrollTop = messages.scrollHeight;
-  }, [messageCount, coachBusy, active]);
+  function showLatest() { const container=messagesRef.current;if(!container)return;const replies=container.querySelectorAll<HTMLElement>('.message-assistant');const latest=replies[replies.length-1];container.scrollTop=latest?Math.max(0,latest.offsetTop-12):container.scrollHeight; }
+  useEffect(()=>{if(active){followLatest.current=true;showLatest()}},[active,Boolean(state)]);
+  useEffect(()=>{const container=messagesRef.current;if(active&&container&&followLatest.current){if(coachBusy)container.scrollTop=container.scrollHeight;else showLatest()}},[messageCount,coachBusy,active]);
   useEffect(() => {
     const input = inputRef.current;
     if (input) {
@@ -57,17 +52,18 @@ export function CoachChat({ controller, active, prompt }: { controller: CoachCon
     if (!message) { setInputError('请先写下想告诉教练的内容。'); return; }
     if (!state?.coach.available || actionBusy) return;
     setInputError('');
+    followLatest.current=true;
     if (await sendChat(message)) setDraft(current => current.trim() === message ? '' : current);
   }
   return <section id="coach" className={`panel coach-panel${active ? ' is-active' : ''}`} aria-labelledby="coach-heading">
-    <div className="coach-topline"><div><span className="coach-glyph" aria-hidden="true">✳</span><h1 id="coach-heading">你的训练教练</h1></div><span>{coachBusy ? '正在分析' : coach?.available ? (coach.model || 'AI 教练') : '等待连接'}</span></div>
+    <div className="coach-topline"><h1 id="coach-heading">教练</h1>{coachBusy?<span>正在分析</span>:state?.messages.length?<button className="text-button" onClick={showLatest}>最新结论 ↓</button>:<span>结合训练与恢复</span>}</div>
     <div className="messages" ref={messagesRef} aria-label="教练对话" onScroll={event => {
       const element = event.currentTarget;
       followLatest.current = element.scrollHeight - element.scrollTop - element.clientHeight < 80;
     }}>
       {state?.messages.length ? state.messages.map((message, index) => <article key={message.id ?? `${index}-${message.created_at}`} className={`message message-${message.role}`} aria-label={message.role === 'user' ? '你' : '教练'}>
-        {message.role === 'assistant' ? <div><span className="message-author">Heracles</span><AssistantReply message={message} />{message.proposal_id && state.proposals.find(p => p.id === message.proposal_id) && <ProposalCard proposal={state.proposals.find(p => p.id === message.proposal_id)!} controller={controller} />}{message.proposal_error && <p className="feedback is-error">{message.proposal_error}</p>}</div> : <p className="message-body">{message.content}</p>}
-      </article>) : <div className="conversation-empty"><span className="coach-empty-glyph" aria-hidden="true">✳</span><h2>训练有计划，<br />变化也有回应。</h2><p>告诉我你今天的情况。我们一起把计划变成适合你的每一步。</p><div className="suggested-prompts">{['今天只有 20 分钟，怎么调整？', '解释一下今天训练的目的和执行细节', '帮我制定未来七天的训练计划'].map(text => <button type="button" key={text} onClick={() => { setDraft(text); inputRef.current?.focus(); }}>{text}<span aria-hidden="true">↗</span></button>)}</div></div>}
+        {message.role === 'assistant' ? <div><AssistantReply message={message} />{message.proposal_id && state.proposals.find(p => p.id === message.proposal_id) && <ProposalCard proposal={state.proposals.find(p => p.id === message.proposal_id)!} controller={controller} />}{message.proposal_error && <p className="feedback is-error">{message.proposal_error}</p>}</div> : <p className="message-body">{message.content}</p>}
+      </article>) : <div className="conversation-empty"><h2>今天想解决什么？</h2><div className="suggested-prompts">{['复盘最近一次训练', '看看近七天的恢复变化', '今天只有30分钟，调整训练安排', '如何安排力量训练？'].map(text => <button type="button" key={text} onClick={() => { setDraft(text); inputRef.current?.focus(); }}>{text}<span aria-hidden="true">↗</span></button>)}</div></div>}
       {coachBusy && <p className="busy-note" role="status" aria-live="polite">{coach?.phase || '思考中…'}</p>}
     </div>
     <form className="chat-form" onSubmit={submit}>

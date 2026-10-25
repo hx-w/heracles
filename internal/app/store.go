@@ -71,6 +71,7 @@ func id() string {
 	return hex.EncodeToString(b)
 }
 func hash(v any) string              { h := sha256.Sum256(encode(v)); return hex.EncodeToString(h[:]) }
+func safeText(v any, n int) bool     { s, ok := v.(string); return ok && textLimit(s, n) }
 func textLimit(v string, n int) bool { return strings.TrimSpace(v) != "" && len([]rune(v)) <= n }
 
 type Store struct {

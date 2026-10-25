@@ -103,14 +103,18 @@ func (s *Server) State() M {
 		metrics = []any{}
 	}
 	activities := array(health["activities"])
-	if len(activities) > 10 {
-		activities = activities[:10]
+	if len(activities) > 40 {
+		activities = activities[:40]
+	}
+	for _, v := range activities {
+		a := object(v)
+		a["route_points"] = s.Store.Get("route:"+str(a["id"]), []any{})
 	}
 	logs := s.Store.Records("training_logs")
 	if len(logs) > 30 {
 		logs = logs[:30]
 	}
-	return M{"today": today(), "timezone": "Asia/Shanghai", "profile": s.Store.Get("profile", DefaultProfile()), "plan": s.Store.Get("plan", EmptyPlan()), "messages": s.Store.Messages(), "coach": M{"available": s.Harness.Available(), "busy": s.coachBusy, "error": s.coachError, "phase": s.phase, "model": Model(), "provider": Provider()}, "syncing": s.syncBusy, "checkin": s.Store.Get("checkin:"+today(), nil), "proposals": proposals, "active_sessions": active, "metrics": metrics, "activities": activities, "training_logs": logs, "connection": M{"garmin": boolean(health["connected"]), "synced_at": health["synced_at"], "sync_error": health["sync_error"], "poll_seconds": s.Poll.Seconds()}, "exercise_catalog": s.Exercises, "exports": s.Store.Records("exports")}
+	return M{"today": today(), "timezone": "Asia/Shanghai", "profile": s.Store.Get("profile", DefaultProfile()), "plan": s.Store.Get("plan", EmptyPlan()), "messages": s.Store.Messages(), "coach": M{"available": s.Harness.Available(), "busy": s.coachBusy, "error": s.coachError, "phase": s.phase}, "syncing": s.syncBusy, "checkin": s.Store.Get("checkin:"+today(), nil), "proposals": proposals, "active_sessions": active, "metrics": metrics, "activities": activities, "training_logs": logs, "health_history": s.VisualCatalog(), "health_changes": healthChanges(s.VisualCatalog()), "connection": M{"garmin": boolean(health["connected"]), "synced_at": health["synced_at"], "sync_error": health["sync_error"], "poll_seconds": s.Poll.Seconds()}, "exercise_catalog": s.Exercises, "exports": s.Store.Records("exports")}
 }
 func (s *Server) Context() M {
 	s.mu.Lock()
@@ -143,7 +147,7 @@ func (s *Server) Context() M {
 	if len(logs) > 20 {
 		logs = logs[:20]
 	}
-	return M{"today": today(), "timezone": "Asia/Shanghai", "profile": s.Store.Get("profile", DefaultProfile()), "plan": s.Store.Get("plan", EmptyPlan()), "checkin": s.Store.Get("checkin:"+today(), nil), "active_sessions": active, "history": clean, "health": privateData(health), "health_daily": privateData(s.Store.Get("health_daily", M{})), "recent_activity_details": details, "training_logs": logs, "visualization_catalog": s.VisualCatalog(), "exercise_catalog": s.Exercises}
+	return M{"today": today(), "timezone": "Asia/Shanghai", "profile": s.Store.Get("profile", DefaultProfile()), "plan": s.Store.Get("plan", EmptyPlan()), "checkin": s.Store.Get("checkin:"+today(), nil), "active_sessions": active, "history": clean, "health": privateData(health), "recent_activity_details": details, "training_logs": logs, "visualization_catalog": s.VisualCatalog(), "health_changes": healthChanges(s.VisualCatalog()), "exercise_catalog": s.Exercises}
 }
 func (s *Server) tool(ctx context.Context, t M) (any, error) {
 	switch str(t["action"]) {
@@ -253,12 +257,12 @@ func (s *Server) coachTurn() {
 	size := len([]rune(str(reply["summary"])))
 	for _, v := range sections {
 		sec := object(v)
-		if !textLimit(str(sec["title"]), 60) || len(array(sec["items"])) > 6 {
+		if !safeText(sec["title"], 60) || len(array(sec["items"])) > 6 {
 			fail(errors.New("教练回复节内容无效"))
 			return
 		}
 		for _, i := range array(sec["items"]) {
-			if !textLimit(str(i), 1600) {
+			if !safeText(i, 1600) {
 				fail(errors.New("教练回复过长或包含空项"))
 				return
 			}
@@ -269,12 +273,58 @@ func (s *Server) coachTurn() {
 		fail(errors.New("教练回复过长"))
 		return
 	}
+	highlights := []any{}
+	for _, v := range array(reply["highlights"]) {
+		h := object(v)
+		kind := str(h["kind"])
+		if len(highlights) < 3 && safeText(h["label"], 16) && safeText(h["text"], 100) && (kind == "result" || kind == "action" || kind == "attention") {
+			highlights = append(highlights, M{"label": h["label"], "text": h["text"], "kind": kind})
+		}
+	}
+	actions := []any{}
+	for _, v := range array(reply["actions"]) {
+		a := object(v)
+		steps := array(a["steps"])
+		if len(actions) >= 3 || !safeText(a["title"], 40) || (a["when"] != nil && !safeText(a["when"], 30)) || len(steps) == 0 || len(steps) > 4 {
+			continue
+		}
+		valid := true
+		for _, step := range steps {
+			if !safeText(step, 250) {
+				valid = false
+			}
+		}
+		if valid {
+			actions = append(actions, M{"title": a["title"], "when": str(a["when"]), "steps": steps})
+		}
+	}
+	comparisons := []any{}
+	for _, v := range array(reply["comparisons"]) {
+		c := object(v)
+		rows := array(c["items"])
+		if len(comparisons) >= 2 || !safeText(c["title"], 40) || len(rows) == 0 || len(rows) > 4 {
+			continue
+		}
+		valid := true
+		for _, v := range rows {
+			r := object(v)
+			if !safeText(r["label"], 40) || !safeText(r["before"], 100) || !safeText(r["after"], 100) {
+				valid = false
+			}
+		}
+		if valid {
+			comparisons = append(comparisons, M{"title": c["title"], "items": rows})
+		}
+	}
+	extra["actions"] = actions
+	extra["comparisons"] = comparisons
+	extra["highlights"] = highlights
 	extra["sections"] = sections
 	visuals := []any{}
 	catalog := object(context["visualization_catalog"])
 	for _, v := range array(reply["visuals"]) {
 		m := object(v)
-		if str(m["kind"]) != "trend" && str(m["kind"]) != "table" {
+		if !safeText(m["title"], 80) || (str(m["kind"]) != "trend" && str(m["kind"]) != "table") {
 			continue
 		}
 		series := []any{}

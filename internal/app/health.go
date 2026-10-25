@@ -123,7 +123,7 @@ func privateData(v any) any {
 		out := M{}
 		for k, val := range x {
 			l := strings.ToLower(k)
-			if strings.Contains(l, "latitude") || strings.Contains(l, "longitude") || strings.Contains(l, "position_lat") || strings.Contains(l, "position_long") || strings.Contains(l, "polyline") || strings.Contains(l, "coordinates") || strings.HasPrefix(l, "owner") || strings.HasPrefix(l, "userprofile") || l == "displayname" || l == "fullname" || l == "firstname" || l == "lastname" || l == "email" || l == "deviceid" || l == "serialnumber" || l == "userid" || l == "userprofilepk" {
+			if strings.Contains(l, "latitude") || strings.Contains(l, "longitude") || strings.Contains(l, "position_lat") || strings.Contains(l, "position_long") || strings.Contains(l, "polyline") || strings.Contains(l, "coordinates") || strings.HasPrefix(l, "owner") || strings.HasPrefix(l, "userprofile") || l == "displayname" || l == "fullname" || l == "firstname" || l == "lastname" || l == "email" || l == "deviceid" || l == "route_points" || l == "serialnumber" || l == "userid" || l == "userprofilepk" {
 				continue
 			}
 			out[k] = privateData(val)
@@ -165,12 +165,10 @@ func (s *Server) Sync(ctx context.Context) error {
 	at := now()
 	daily := object(s.Store.Get("health_daily", M{}))
 	day := today()
-	for offset := 0; offset < 8; offset++ {
+	for offset := 0; offset < 2; offset++ {
 		date := time.Now().In(zone).AddDate(0, 0, -offset).Format("2006-01-02")
 		records := object(daily[date])
-		if offset > 1 && len(records) > 0 {
-			continue
-		}
+
 		sources := []struct{ key, path string }{
 			{"stats", "/usersummary-service/usersummary/daily/" + url.PathEscape(display) + "?calendarDate=" + date},
 			{"sleep", "/wellness-service/wellness/dailySleepData/" + url.PathEscape(display) + "?date=" + date + "&nonSleepBufferMinutes=60"},
@@ -182,6 +180,7 @@ func (s *Server) Sync(ctx context.Context) error {
 			{"heart", "/wellness-service/wellness/dailyHeartRate/" + url.PathEscape(display) + "?date=" + date},
 		}
 		for _, src := range sources {
+
 			if ctx.Err() != nil {
 				return ctx.Err()
 			}
@@ -240,6 +239,21 @@ func (s *Server) Sync(ctx context.Context) error {
 		}
 		_, _ = s.Activity(ctx, aid)
 	}
+	for i, a := range activities {
+		if i >= 8 {
+			break
+		}
+		m := object(a)
+		aid := str(m["id"])
+		if s.Store.Get("route:"+aid, nil) != nil {
+			continue
+		}
+		raw, err := s.Garmin.Get(ctx, "/activity-service/activity/"+url.PathEscape(aid)+"/details?maxChartSize=100&maxPolylineSize=120")
+		if err == nil {
+			_ = s.Store.Put("route:"+aid, routeShape(raw))
+		}
+	}
+	s.backfillHealth(ctx, display)
 	return nil
 }
 func (s *Server) Activity(ctx context.Context, identifier string) (M, error) {
@@ -279,8 +293,8 @@ func (s *Server) VisualCatalog() M {
 		dates = append(dates, d)
 	}
 	sort.Strings(dates)
-	if len(dates) > 8 {
-		dates = dates[len(dates)-8:]
+	if len(dates) > 30 {
+		dates = dates[len(dates)-30:]
 	}
 	catalog := M{}
 	for _, date := range dates {
@@ -291,7 +305,16 @@ func (s *Server) VisualCatalog() M {
 			if len(series) == 0 {
 				series = M{"key": key, "label": m["label"], "unit": m["unit"], "description": "佳明日级设备记录；读取时间不等于测量时间", "points": []any{}}
 			}
-			series["points"] = append(array(series["points"]), M{"date": date, "value": m["value"], "status": m["status"], "source_at": m["source_at"], "fetched_at": m["fetched_at"]})
+			value, status := m["value"], m["status"]
+			measured := dateOnly(m["source_at"])
+			if measured == nil {
+				measured = dateOnly(m["data_date"])
+			}
+			if measured != nil && str(measured) != date {
+				value = nil
+				status = "missing"
+			}
+			series["points"] = append(array(series["points"]), M{"date": date, "value": value, "status": status, "source_at": m["source_at"], "fetched_at": m["fetched_at"]})
 			catalog[key] = series
 		}
 	}
@@ -312,4 +335,135 @@ func sourceDay(v any) any {
 		}
 	}
 	return nil
+}
+
+// Changes use dated, available observations, including real zero values.
+func healthChanges(catalog M) []any {
+	out := []any{}
+	for _, key := range []string{"sleep_hours", "hrv", "readiness", "recovery_hours", "resting_hr", "acute_load"} {
+		series := object(catalog[key])
+		valid := []M{}
+		for _, p := range array(series["points"]) {
+			m := object(p)
+			if m["value"] != nil && str(m["status"]) == "available" {
+				valid = append(valid, m)
+			}
+		}
+		if len(valid) == 0 {
+			continue
+		}
+		latest := valid[len(valid)-1]
+		change := M{"key": key, "label": series["label"], "unit": series["unit"], "current": latest["value"], "date": latest["date"], "previous": nil, "previous_date": nil, "delta": nil, "baseline_mean": nil, "baseline_days": 0}
+		if len(valid) > 1 {
+			prev := valid[len(valid)-2]
+			change["previous"] = prev["value"]
+			change["previous_date"] = prev["date"]
+			change["delta"] = math.Round((num(latest["value"])-num(prev["value"]))*100) / 100
+		}
+		latestDate, _ := time.Parse("2006-01-02", str(latest["date"]))
+		var sum float64
+		count := 0
+		for _, p := range valid[:len(valid)-1] {
+			d, e := time.Parse("2006-01-02", str(p["date"]))
+			if e == nil && !d.Before(latestDate.AddDate(0, 0, -7)) {
+				sum += num(p["value"])
+				count++
+			}
+		}
+		if count > 0 {
+			change["baseline_mean"] = math.Round(sum/float64(count)*100) / 100
+			change["baseline_days"] = count
+		}
+		out = append(out, change)
+	}
+	return out
+}
+
+func routeShape(raw any) []any {
+	points := array(field(raw, "geoPolylineDTO", "polyline"))
+	coords := []M{}
+	minX, maxX, minY, maxY := 180.0, -180.0, 90.0, -90.0
+	for _, v := range points {
+		p := object(v)
+		if p["lat"] == nil || p["lon"] == nil {
+			continue
+		}
+		lat, lon := num(p["lat"]), num(p["lon"])
+		if lat < -90 || lat > 90 || lon < -180 || lon > 180 {
+			continue
+		}
+		coords = append(coords, M{"x": lon, "y": lat})
+		minX = math.Min(minX, lon)
+		maxX = math.Max(maxX, lon)
+		minY = math.Min(minY, lat)
+		maxY = math.Max(maxY, lat)
+	}
+	if len(coords) < 2 {
+		return []any{}
+	}
+	cos := math.Cos((minY + maxY) / 2 * math.Pi / 180)
+	scale := math.Max((maxX-minX)*cos, maxY-minY)
+	if scale == 0 {
+		return []any{}
+	}
+	out := []any{}
+	stride := 1
+	if len(coords) > 160 {
+		stride = (len(coords) + 159) / 160
+	}
+	for i, p := range coords {
+		if i%stride != 0 && i != len(coords)-1 {
+			continue
+		}
+		out = append(out, []any{math.Round((8+(num(p["x"])-minX)*cos/scale*84)*10) / 10, math.Round((92-(num(p["y"])-minY)/scale*84)*10) / 10})
+	}
+	return out
+}
+
+// A short, checkpointed backfill follows the already-persisted current snapshot.
+func (s *Server) backfillHealth(parent context.Context, display string) {
+	ctx, cancel := context.WithTimeout(parent, 15*time.Second)
+	defer cancel()
+	daily := object(s.Store.Get("health_daily", M{}))
+	datesDone := 0
+	for offset := 2; offset < 30; offset++ {
+		if ctx.Err() != nil || datesDone >= 5 {
+			return
+		}
+		date := time.Now().In(zone).AddDate(0, 0, -offset).Format("2006-01-02")
+		records := object(daily[date])
+		changed := false
+		sources := []struct{ key, path string }{{"stats", "/usersummary-service/usersummary/daily/" + url.PathEscape(display) + "?calendarDate=" + date}, {"sleep", "/wellness-service/wellness/dailySleepData/" + url.PathEscape(display) + "?date=" + date + "&nonSleepBufferMinutes=60"}, {"hrv", "/hrv-service/hrv/" + date}, {"readiness", "/metrics-service/metrics/trainingreadiness/" + date}, {"training", "/metrics-service/metrics/trainingstatus/aggregated/" + date}}
+		for _, src := range sources {
+			previous := object(records[src.key])
+			if str(previous["status"]) == "available" || strings.HasPrefix(str(previous["attempted_at"]), today()) {
+				continue
+			}
+			value, err := s.Garmin.Get(ctx, src.path)
+			if ctx.Err() != nil {
+				break
+			}
+			previous["attempted_at"] = now()
+			previous["requested_date"] = date
+			if err != nil {
+				previous["status"] = "error"
+				previous["error"] = err.Error()
+			} else {
+				previous["status"] = "available"
+				previous["data"] = value
+				previous["data_date"] = sourceDay(value)
+				previous["fetched_at"] = now()
+				previous["error"] = nil
+			}
+			records[src.key] = previous
+			changed = true
+		}
+		if changed {
+			daily[date] = records
+			s.mu.Lock()
+			_ = s.Store.Put("health_daily", daily)
+			s.mu.Unlock()
+			datesDone++
+		}
+	}
 }

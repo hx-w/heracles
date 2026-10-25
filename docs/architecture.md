@@ -13,7 +13,7 @@ A Garmin snapshot is the long-term baseline. Local proposals reference exact dat
 
 Independent workouts can be sent to the Garmin workout library after a second confirmation. They are not substituted into adaptive Coach plans or automatically scheduled. Durable receipts record every send, and the service reads Garmin back before reporting completion. An uncertain response blocks blind retries.
 
-Garmin DI credentials are imported into the private volume and refreshed natively. Region selects an official Garmin host, never an arbitrary credential endpoint. Device timestamps and source status are retained separately from read times. Coach context removes account identity and location fields and labels bounded data samples.
+Garmin DI credentials are imported into the private volume and refreshed natively. Region selects an official Garmin host, never an arbitrary credential endpoint. Device timestamps and source status are retained separately from read times. Current activity and plan snapshots are committed before a bounded, checkpointed 30-day history backfill. Daily changes use only dated available observations; failed or mismatched-date points are gaps, not new data. Authenticated activity thumbnails contain normalized route geometry and use no third-party map tiles. Coach context removes account identity and location fields and labels bounded data samples.
 
 Pairing uses a 24-hour single-use invitation, a user-confirmed POST and a non-expiring, hashed device credential. GET link previews do not consume invitations. HttpOnly cookies are renewed during normal use; browser deletion and private mode can still require pairing again. Only health and installation resources are public. Business APIs, media and application assets require authorization.
 

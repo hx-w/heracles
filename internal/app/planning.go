@@ -100,7 +100,7 @@ func (s *Server) Proposals() ([]M, []any) {
 	return records, active
 }
 func (s *Server) Draft(proposal M, context M) (M, error) {
-	if !textLimit(str(proposal["title"]), 100) || !textLimit(str(proposal["rationale"]), 1000) {
+	if !safeText(proposal["title"], 100) || !safeText(proposal["rationale"], 1000) {
 		return nil, errors.New("方案缺少标题或调整依据")
 	}
 	plan := object(context["plan"])
@@ -127,7 +127,7 @@ func (s *Server) Draft(proposal M, context M) (M, error) {
 		if e != nil || date < today() || d.After(max.AddDate(0, 0, 13)) {
 			return nil, errors.New("方案仅支持今天起14天内的安排")
 		}
-		if !textLimit(str(session["title"]), 100) || !textLimit(str(session["reason"]), 600) || !textLimit(str(session["stop_conditions"]), 600) || !kindPattern.MatchString(str(session["kind"])) {
+		if !safeText(session["title"], 100) || !safeText(session["reason"], 600) || !safeText(session["stop_conditions"], 600) || !kindPattern.MatchString(str(session["kind"])) {
 			return nil, errors.New("课程标题、类型或执行边界无效")
 		}
 		operation := str(session["operation"])
@@ -194,7 +194,7 @@ func (s *Server) Draft(proposal M, context M) (M, error) {
 					step[key] = nil
 				}
 			}
-			if !allowedPhase[str(step["phase"])] || !textLimit(str(step["title"]), 100) || !textLimit(str(step["target"]), 250) || !textLimit(str(step["instructions"]), 700) {
+			if !allowedPhase[str(step["phase"])] || !safeText(step["title"], 100) || !safeText(step["target"], 250) || !safeText(step["instructions"], 700) {
 				return nil, errors.New("训练步骤缺少清楚的执行信息")
 			}
 			repeat := num(step["repeat"])

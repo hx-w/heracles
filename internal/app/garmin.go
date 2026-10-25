@@ -388,8 +388,10 @@ func timestamp(v any) any {
 	if t, e := time.Parse(time.RFC3339, s); e == nil {
 		return t.In(zone).Format(time.RFC3339)
 	}
-	if t, e := time.ParseInLocation("2006-01-02T15:04:05", s, zone); e == nil {
-		return t.Format(time.RFC3339)
+	for _, layout := range []string{"2006-01-02T15:04:05", "2006-01-02 15:04:05", "2006-01-02 15:04:05 -0700"} {
+		if t, e := time.ParseInLocation(layout, s, zone); e == nil {
+			return t.Format(time.RFC3339)
+		}
 	}
 	return nil
 }
@@ -400,7 +402,21 @@ func activity(raw M) M {
 		s := int(seconds/(distance/1000) + .5)
 		pace = fmt.Sprintf("%d:%02d /km", s/60, s%60)
 	}
-	return M{"id": raw["activityId"], "date": timestamp(raw["startTimeLocal"]), "name": raw["activityName"], "sport": object(raw["activityType"])["typeKey"], "distance_km": roundedDivision(raw["distance"], 1000, 100), "duration_minutes": roundedDivision(raw["duration"], 60, 10), "pace": pace, "average_hr": raw["averageHR"], "max_hr": raw["maxHR"], "cadence": raw["averageRunningCadenceInStepsPerMinute"], "elevation_gain": raw["elevationGain"], "aerobic_effect": raw["aerobicTrainingEffect"], "anaerobic_effect": raw["anaerobicTrainingEffect"], "calories": raw["calories"]}
+	at := timestamp(raw["startTimeLocal"])
+	if at == nil {
+		if raw["startTimeGMT"] != nil {
+			gmt := str(raw["startTimeGMT"])
+			gmt = strings.ReplaceAll(gmt, " ", "T")
+			if !strings.HasSuffix(gmt, "Z") {
+				gmt += "Z"
+			}
+			at = timestamp(gmt)
+		}
+	}
+	if at == nil {
+		at = timestamp(raw["beginTimestamp"])
+	}
+	return M{"id": raw["activityId"], "date": at, "average_speed_kmh": roundedDivision(raw["averageSpeed"], 1.0/3.6, 10), "name": raw["activityName"], "sport": object(raw["activityType"])["typeKey"], "distance_km": roundedDivision(raw["distance"], 1000, 100), "duration_minutes": roundedDivision(raw["duration"], 60, 10), "pace": pace, "average_hr": raw["averageHR"], "max_hr": raw["maxHR"], "cadence": raw["averageRunningCadenceInStepsPerMinute"], "elevation_gain": raw["elevationGain"], "aerobic_effect": raw["aerobicTrainingEffect"], "anaerobic_effect": raw["anaerobicTrainingEffect"], "calories": raw["calories"]}
 }
 
 func roundedDivision(v any, divisor, precision float64) any {

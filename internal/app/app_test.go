@@ -570,3 +570,44 @@ func TestTomorrowAdjustmentIgnoresUntouchedTodayBudget(t *testing.T) {
 		t.Fatal(e)
 	}
 }
+
+func TestActivityDatesAndRouteNormalization(t *testing.T) {
+	for _, raw := range []M{{"startTimeLocal": "2026-10-25 07:12:34"}, {"startTimeLocal": "2026-10-25T07:12:34"}, {"startTimeGMT": "2026-10-24 23:12:34"}} {
+		a := activity(raw)
+		if str(a["date"]) != "2026-10-25T07:12:34+08:00" {
+			t.Fatalf("incorrect activity date %v", a["date"])
+		}
+	}
+	route := routeShape(M{"geoPolylineDTO": M{"polyline": []any{M{"lat": 31.0, "lon": 121.0}, M{"lat": 31.01, "lon": 121.02}, M{"lat": 31.02, "lon": 121.0}}}})
+	if len(route) != 3 {
+		t.Fatal("valid route lost")
+	}
+	for _, p := range route {
+		for _, v := range array(p) {
+			if num(v) < 0 || num(v) > 100 {
+				t.Fatal("route outside thumb")
+			}
+		}
+	}
+	if len(routeShape(M{})) != 0 {
+		t.Fatal("missing route invented")
+	}
+}
+func TestHealthChangesUseAvailableDatesAndZero(t *testing.T) {
+	catalog := M{"readiness": M{"label": "准备度", "unit": "/100", "points": []any{M{"date": "2026-10-21", "value": 30, "status": "available"}, M{"date": "2026-10-22", "value": nil, "status": "missing"}, M{"date": "2026-10-23", "value": 40, "status": "available"}, M{"date": "2026-10-24", "value": 0, "status": "available"}, M{"date": "2026-10-25", "value": nil, "status": "error"}}}}
+	c := object(healthChanges(catalog)[0])
+	if num(c["current"]) != 0 || num(c["delta"]) != -40 || str(c["date"]) != "2026-10-24" || str(c["previous_date"]) != "2026-10-23" || num(c["baseline_days"]) != 2 || num(c["baseline_mean"]) != 35 {
+		t.Fatal("trend misrepresented missing/zero", c)
+	}
+}
+func TestStructuredTextRejectsObjects(t *testing.T) {
+	if safeText(M{"x": "y"}, 16) || safeText([]any{"ok"}, 100) || !safeText("正常结论", 100) {
+		t.Fatal("structured text accepts nonstrings")
+	}
+	s := testServer(t)
+	p := exampleProposal()
+	p["title"] = M{"x": "y"}
+	if _, e := s.Draft(p, s.Context()); e == nil {
+		t.Fatal("object proposal title accepted")
+	}
+}

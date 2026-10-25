@@ -28,10 +28,7 @@ export function GoalForm({ controller }: { controller: CoachController }) {
     if (await saveProfile(profile)) setDirty(false);
   }
 
-  return <section className="training-goal" aria-labelledby="profile-heading">
-    <div className="training-section-heading"><h2 id="profile-heading">个人教练背景</h2></div>
-    <p className="training-chart-note">教练会结合你的目标、经验与时间制定方案。保存后，前往教练对话提出训练需求。</p>
-    <details className="goal-edit"><summary><span>每周可训练 {state?.profile.weekly_days || '—'} 天</span><span>{state?.profile.goal ? '编辑个人背景' : '填写个人背景'}<span className="disclosure-mark" aria-hidden="true"> ›</span></span></summary>
+  return <section className="training-goal" aria-label="目标与训练背景">
     <form id="profile-form" onSubmit={submit}>
       <fieldset disabled={!state || profileSaving}>
         <label htmlFor="goal">长期目标</label><textarea id="goal" rows={2} maxLength={1500} value={draft.goal} onChange={event => update('goal', event.target.value)} />
@@ -43,6 +40,5 @@ export function GoalForm({ controller }: { controller: CoachController }) {
       <div className="form-footer"><button className="primary" type="submit" disabled={!state || actionBusy}>{profileSaving ? '正在保存…' : controller.coachBusy ? '教练处理中…' : '保存个人背景'}</button><span className="training-draft-status" role="status">{dirty ? '未保存' : ''}</span></div>
       <p className={`feedback${profileFeedback.error ? ' is-error' : ''}`} role="status" aria-live="polite">{profileFeedback.message}</p>
     </form>
-    </details>
   </section>;
 }

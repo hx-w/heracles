@@ -97,6 +97,9 @@ export interface Message {
   content: string;
   created_at: string;
   sections?: ReplySection[];
+  comparisons?: {title: string; items: {label: string; before: string; after: string}[]}[];
+  actions?: {title: string; when: string; steps: string[]}[];
+  highlights?: {label: string; text: string; kind: 'result' | 'action' | 'attention'}[];
   visuals?: MessageVisual[];
   exercises?: Exercise[];
   proposal_id?: string;
@@ -107,9 +110,6 @@ export interface CoachStatus {
   busy: boolean;
   error: string | null;
   phase?: string | null;
-  model?: string | null;
-  provider?: string | null;
-  session_id?: string | null;
 }
 export interface CoachState {
   today: string;
@@ -123,11 +123,13 @@ export interface CoachState {
   proposals: Proposal[];
   active_sessions: ProposedSession[];
   metrics: BodyMetric[];
+  health_history: Partial<Record<MetricKey, MetricSeries>>;
+  health_changes: HealthChange[];
   connection: { garmin: boolean; synced_at: string | null; sync_error: string | null; poll_seconds: number };
   training_logs: TrainingLog[];
   exercise_catalog: Exercise[];
   exports: {id: string; proposal_id: string; status: string; note: string; error?: string}[];
-  activities: { id: number | string; date: string | null; name: string; sport: string; distance_km: number | null; duration_minutes: number | null; pace: string | null }[];
+  activities: ActivityRecord[];
 }
 export interface Feedback { message: string; error?: boolean }
 export interface Accepted { accepted: boolean }
@@ -185,6 +187,7 @@ export interface BodyMetric {
   key: string; label: string; value: number | null; unit: string;
   status: string; source_at: string | null; fetched_at: string | null;
   fresh: boolean;
+  data_date?:string|null;
 }
 
 export interface Exercise {
@@ -197,3 +200,7 @@ export interface Exercise {
 }
 export interface TrainingSet { exercise_id: string; exercise_name: string; reps: number; load_kg: number }
 export interface TrainingLog { id: string; date: string; title: string; kind: string; sets: TrainingSet[]; effort: number; notes: string; created_at?: string; source?: string }
+
+export interface HealthChange { key: MetricKey; label: string; unit: string; current: number; date: string; previous: number | null; previous_date: string | null; delta: number | null; baseline_mean: number | null; baseline_days: number }
+
+export interface ActivityRecord { id: number|string; date: string|null; name: string; sport: string; distance_km: number|null; duration_minutes: number|null; pace: string|null; average_hr?:number|null; max_hr?:number|null; elevation_gain?:number|null; calories?:number|null; average_speed_kmh?:number|null; route_points?:[number,number][] }
