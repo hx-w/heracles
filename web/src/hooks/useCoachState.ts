@@ -48,6 +48,10 @@ export function useCoachState(): CoachController {
       setLoading(true);
       try {
         const next = await api.state();
+        const live=stateRef.current;
+        if(live&&(next.coach.revision??0)<(live.coach.revision??0)) {
+          next.coach=live.coach;next.messages=live.messages;
+        }
         const chat = chatJob.current;
         if (chat) {
           if (next.coach.busy) chat.observedBusy = true;
@@ -91,6 +95,26 @@ export function useCoachState(): CoachController {
   const actionBusy = coachBusy || profileSaving || syncRunning || mutationBusy;
 
   useEffect(() => { void reload(); }, [reload]);
+  const connected=Boolean(state);
+  useEffect(()=>{
+    if(!connected)return;
+    const events=new EventSource('/api/coach/events');
+    events.addEventListener('coach',event=>{
+      try {
+        const next=JSON.parse((event as MessageEvent).data) as Pick<CoachState,'coach'|'messages'>;
+        if(!next.coach||!Array.isArray(next.messages))return;
+        const current=stateRef.current;
+        if(!current)return;
+        if((next.coach.revision??0)<(current.coach.revision??0))return;
+        // Full replies are already validated and durable. The runtime does not
+        // expose token deltas, so no artificial typewriter or partial JSON.
+        const updated={...current,coach:next.coach,messages:next.messages};
+        stateRef.current=updated;setState(updated);
+        if(!next.coach.busy&&(current.coach.busy||JSON.stringify(current.messages)!==JSON.stringify(next.messages)))void(async()=>{await inFlight.current;await reload()})();
+      } catch { /* Reconnection and ordinary state polling recover the stream. */ }
+    });
+    return()=>events.close();
+  },[connected,reload]);
   useEffect(() => {
     let timer: number;
     let active = true;

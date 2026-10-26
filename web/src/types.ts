@@ -106,6 +106,7 @@ export interface Message {
   proposal_error?: string;
 }
 export interface CoachStatus {
+  revision?:number;
   available: boolean;
   busy: boolean;
   error: string | null;
@@ -129,9 +130,11 @@ export interface CoachState {
   training_logs: TrainingLog[];
   exercise_catalog: Exercise[];
   exports: {id: string; proposal_id: string; status: string; note: string; error?: string}[];
+  export_cleanup?: ExportCleanup[];
   activities: ActivityRecord[];
 }
 export interface Feedback { message: string; error?: boolean }
+export interface ExportCleanup {receipt_id:string;workout_id:string;date:string;title:string;proposal_id:string;confirmation:string;removal_status?:string|null}
 export interface Accepted { accepted: boolean }
 
 export interface CheckInInput {
@@ -182,6 +185,7 @@ export interface Proposal {
   invalid_reason: string | null;
   created_at: string;
   updated_at: string;
+  export_issues?: {local_id?:string;title?:string;reason:string}[];
 }
 export interface BodyMetric {
   key: string; label: string; value: number | null; unit: string;

@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import {useTrainingDialog} from '../hooks/useTrainingDialog';
+import { useRef, useState } from 'react';
 import type { CoachController } from '../hooks/useCoachState';
 import type { TrainingSet } from '../types';
 import { api, errorMessage } from '../api';
@@ -19,7 +20,7 @@ export function StrengthDrawer({ open, onClose, controller, askCoach }: { open: 
   const id = useRef(crypto.randomUUID());
   const exercises = controller.state?.exercise_catalog || [];
   const selected = exercises.find(e => e.id === exerciseId) || exercises[0];
-  useEffect(() => { const element = dialog.current; if (!element) return; if (open && !element.open) element.showModal(); if (!open && element.open) element.close(); }, [open]);
+  useTrainingDialog(dialog,open);
   async function save(review: boolean) {
     if (!controller.state || saving || !sets.length) return;
     setSaving(true); setFeedback('');

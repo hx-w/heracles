@@ -31,6 +31,8 @@ type Server struct {
 	phase               string
 	coachError          any
 	Exercises           []M
+	coachWake           chan struct{}
+	coachRevision       uint64
 }
 
 func New(dir, web string) (*Server, error) {
@@ -47,7 +49,7 @@ func New(dir, web string) (*Server, error) {
 	if poll < 120 {
 		poll = 120
 	}
-	s := &Server{root: context.Background(), Store: store, Garmin: NewGarmin(dir), Harness: Harness{Dir: dir}, WebDir: web, Poll: time.Duration(poll) * time.Second, Exercises: LoadExercises()}
+	s := &Server{root: context.Background(), Store: store, Garmin: NewGarmin(dir), Harness: Harness{Dir: dir}, WebDir: web, Poll: time.Duration(poll) * time.Second, Exercises: LoadExercises(), coachWake: make(chan struct{}), coachRevision: uint64(time.Now().UnixMilli()) * 1000}
 	return s, nil
 }
 func (s *Server) RunBackground(ctx context.Context) {
@@ -115,7 +117,7 @@ func (s *Server) State() M {
 	if len(logs) > 30 {
 		logs = logs[:30]
 	}
-	return M{"today": today(), "timezone": "Asia/Shanghai", "profile": s.Store.Get("profile", DefaultProfile()), "plan": s.Store.Get("plan", EmptyPlan()), "messages": s.Store.Messages(), "coach": M{"available": s.Harness.Available(), "busy": s.coachBusy, "error": s.coachError, "phase": s.phase}, "syncing": s.syncBusy, "checkin": s.Store.Get("checkin:"+today(), nil), "proposals": proposals, "active_sessions": active, "metrics": metrics, "activities": activities, "training_logs": logs, "health_history": s.VisualCatalog(), "health_changes": healthChanges(s.VisualCatalog()), "connection": M{"garmin": boolean(health["connected"]), "synced_at": health["synced_at"], "sync_error": health["sync_error"], "poll_seconds": s.Poll.Seconds()}, "exercise_catalog": s.Exercises, "exports": s.Store.Records("exports")}
+	return M{"today": today(), "timezone": "Asia/Shanghai", "profile": s.Store.Get("profile", DefaultProfile()), "plan": s.Store.Get("plan", EmptyPlan()), "messages": s.Store.Messages(), "coach": M{"available": s.Harness.Available(), "busy": s.coachBusy, "error": s.coachError, "phase": s.phase, "revision": s.coachRevision}, "syncing": s.syncBusy, "checkin": s.Store.Get("checkin:"+today(), nil), "proposals": proposals, "active_sessions": active, "metrics": metrics, "activities": activities, "training_logs": logs, "health_history": s.VisualCatalog(), "health_changes": healthChanges(s.VisualCatalog()), "connection": M{"garmin": boolean(health["connected"]), "synced_at": health["synced_at"], "sync_error": health["sync_error"], "poll_seconds": s.Poll.Seconds()}, "exercise_catalog": s.Exercises, "exports": s.Store.Records("exports"), "export_cleanup": s.CleanupOptions()}
 }
 func (s *Server) Context() M {
 	s.mu.Lock()
@@ -148,7 +150,7 @@ func (s *Server) Context() M {
 	if len(logs) > 20 {
 		logs = logs[:20]
 	}
-	return M{"today": today(), "timezone": "Asia/Shanghai", "profile": s.Store.Get("profile", DefaultProfile()), "plan": s.Store.Get("plan", EmptyPlan()), "checkin": s.Store.Get("checkin:"+today(), nil), "profile_configured": s.Store.Get("profile", nil) != nil, "active_sessions": active, "history": clean, "health": privateData(health), "recent_activity_details": details, "training_logs": logs, "visualization_catalog": s.VisualCatalog(), "health_changes": healthChanges(s.VisualCatalog()), "exercise_catalog": s.Exercises}
+	return M{"today": today(), "timezone": "Asia/Shanghai", "profile": s.Store.Get("profile", DefaultProfile()), "plan": s.Store.Get("plan", EmptyPlan()), "checkin": s.Store.Get("checkin:"+today(), nil), "profile_configured": s.Store.Get("profile", nil) != nil, "active_sessions": active, "history": clean, "health": privateData(health), "recent_activity_details": details, "training_logs": logs, "visualization_catalog": s.VisualCatalog(), "health_changes": healthChanges(s.VisualCatalog()), "exercise_catalog": s.Exercises, "garmin_export_capabilities": exportCapabilities()}
 }
 func (s *Server) tool(ctx context.Context, t M) (any, error) {
 	switch str(t["action"]) {
@@ -185,8 +187,8 @@ func (s *Server) tool(ctx context.Context, t M) (any, error) {
 func (s *Server) coachTurn() {
 	ctx, cancel := context.WithTimeout(s.root, 8*time.Minute)
 	defer cancel()
-	defer func() { s.mu.Lock(); s.coachBusy = false; s.phase = ""; s.mu.Unlock() }()
-	setPhase := func(v string) { s.mu.Lock(); s.phase = v; s.mu.Unlock() }
+	defer func() { s.mu.Lock(); s.coachBusy = false; s.phase = ""; s.notifyCoachLocked(); s.mu.Unlock() }()
+	setPhase := func(v string) { s.mu.Lock(); s.phase = v; s.notifyCoachLocked(); s.mu.Unlock() }
 	fail := func(e error) {
 		s.mu.Lock()
 		s.coachError = e.Error()
@@ -469,6 +471,19 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 200, s.Exercises)
 		return
 	}
+	if path == "/api/coach/events" && r.Method == "GET" {
+		s.coachEvents(w, r, token)
+		return
+	}
+	if strings.HasPrefix(path, "/api/exports/") && r.Method == "POST" {
+		parts := strings.Split(strings.TrimPrefix(path, "/api/exports/"), "/")
+		if len(parts) != 3 || parts[2] != "remove" {
+			http.NotFound(w, r)
+			return
+		}
+		s.removeExport(w, r, parts[0], parts[1])
+		return
+	}
 	if path == "/api/sync" && r.Method == "POST" {
 		s.jobs.Add(1)
 		go func() {
@@ -492,7 +507,7 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		s.mu.Lock()
-		if s.coachBusy {
+		if s.coachBusy || s.syncBusy {
 			s.mu.Unlock()
 			errorJSON(w, 409, "教练正在处理上一条消息")
 			return
@@ -505,7 +520,13 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 		s.coachBusy = true
 		s.phase = "准备训练上下文"
 		s.coachError = nil
-		_ = s.Store.Message("user", message, nil)
+		if e = s.Store.Message("user", message, nil); e != nil {
+			s.coachBusy = false
+			s.mu.Unlock()
+			errorJSON(w, 500, "留言保存失败，尚未开始分析")
+			return
+		}
+		s.notifyCoachLocked()
 		s.mu.Unlock()
 		s.jobs.Add(1)
 		go func() { defer s.jobs.Done(); s.coachTurn() }()
@@ -528,7 +549,7 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 		}
 		s.mu.Lock()
 		defer s.mu.Unlock()
-		if s.coachBusy {
+		if s.coachBusy || s.syncBusy {
 			errorJSON(w, 409, "分析完成后再修改背景")
 			return
 		}
@@ -554,7 +575,7 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 		saved := M{"fatigue": fatigue, "available_minutes": minutes, "soreness": soreness, "notes": m["notes"], "date": today(), "updated_at": now()}
 		s.mu.Lock()
 		defer s.mu.Unlock()
-		if s.coachBusy {
+		if s.coachBusy || s.syncBusy {
 			errorJSON(w, 409, "分析完成后再更新状态")
 			return
 		}

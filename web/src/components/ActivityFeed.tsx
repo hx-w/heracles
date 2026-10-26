@@ -1,12 +1,13 @@
-import { useEffect,useRef,useState } from 'react';
+import {useTrainingDialog} from '../hooks/useTrainingDialog';
+import { useRef,useState } from 'react';
 import type { ActivityRecord,CoachState } from '../types';
 import { dateLabel,number } from '../format';
 const sportName=(sport:string)=>/cycl|bik/.test(sport)?'骑行':/running|run/.test(sport)?'跑步':/strength/.test(sport)?'力量':/walk/.test(sport)?'步行':/swim/.test(sport)?'游泳':'运动';
 export function RouteThumb({activity,large=false}:{activity:ActivityRecord;large?:boolean}){const points=activity.route_points||[];return <div className={`route-thumb${large?' route-large':''}`}>{points.length>1?<svg viewBox="0 0 100 100" role="img" aria-label="实际活动路线示意"><path d={points.map((p,i)=>`${i?'L':'M'}${p[0]},${p[1]}`).join(' ')}/><circle cx={points[0][0]} cy={points[0][1]} r="2.5"/><circle className="route-end" cx={points.at(-1)![0]} cy={points.at(-1)![1]} r="2.5"/></svg>:<span>{sportName(activity.sport)}</span>}</div>}
 export function ActivityFeed({state,askCoach}:{state:CoachState|null;askCoach:(text:string)=>void}){
  const [history,setHistory]=useState(false);const [selected,setSelected]=useState<ActivityRecord|null>(null);const historyDialog=useRef<HTMLDialogElement>(null),detailDialog=useRef<HTMLDialogElement>(null);
- useEffect(()=>{const el=historyDialog.current;if(!el)return;if(history&&!el.open)el.showModal();if(!history&&el.open)el.close()},[history]);
- useEffect(()=>{const el=detailDialog.current;if(!el)return;if(selected&&!el.open)el.showModal();if(!selected&&el.open)el.close()},[selected]);
+ useTrainingDialog(historyDialog,history);
+ useTrainingDialog(detailDialog,Boolean(selected));
  const today=state?.activities.filter(a=>a.date?.slice(0,10)===state.today)||[];const latest=state?.activities[0];
  function row(a:ActivityRecord){return <button className="activity-card" key={a.id} onClick={()=>{setHistory(false);setSelected(a)}} aria-label={`查看活动：${a.name}`}><RouteThumb activity={a}/><span className="activity-card-body"><strong>{a.name||sportName(a.sport)}</strong><span>{a.distance_km!=null?`${number(a.distance_km)} 公里`:'运动记录'}{a.duration_minutes!=null?` · ${number(a.duration_minutes)} 分钟`:''}</span><time>{a.date?dateLabel(a.date,true):'时间尚未同步'}</time></span><span aria-hidden="true">↗</span></button>}
  return <section className="activity-feed" aria-labelledby="activity-heading"><div className="today-section-title"><h2 id="activity-heading">今日活动</h2><button className="text-button" disabled={!state?.activities.length} onClick={()=>setHistory(true)}>历史活动 ↗</button></div>{today.length?today.map(row):<div className="today-no-activity"><h3>今天还没有同步活动</h3>{latest&&<><p>最近一次 · {latest.date?dateLabel(latest.date):sportName(latest.sport)}</p>{row(latest)}</>}</div>}

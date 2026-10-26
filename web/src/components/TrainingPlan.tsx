@@ -29,6 +29,6 @@ export function TrainingPlan({ controller, active, askCoach }: { controller: Coa
   <details className="plan-disclosure"><summary>目标与训练背景</summary><GoalForm controller={controller}/></details>
   {Boolean(state?.proposals.some(p=>!['pending','active'].includes(p.status)))&&<details className="plan-disclosure"><summary>过去的调整</summary>{state?.proposals.filter(p=>!['pending','active'].includes(p.status)).map(p=><ProposalCard key={p.id} proposal={p} controller={controller}/>)}</details>}
   {controller.planFeedback.message&&<p className="feedback" role="status">{controller.planFeedback.message}</p>}
-  <CourseSheet askCoach={askCoach} course={detail} onClose={()=>setDetail(null)}/>
+  <CourseSheet askCoach={askCoach} course={detail} exercises={state?.exercise_catalog} onClose={()=>setDetail(null)}/>
  </section>;
 }

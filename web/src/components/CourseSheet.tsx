@@ -1,7 +1,9 @@
-import { useEffect, useRef, useId } from 'react';
-import type { GarminWorkout, GarminWorkoutStep, ProposedSession } from '../types';
+import {useTrainingDialog} from '../hooks/useTrainingDialog';
+import { useRef, useId } from 'react';
+import type { Exercise, GarminWorkout, GarminWorkoutStep, ProposedSession } from '../types';
 import { duration, kindLabels, number, numeric, statusLabels } from '../format';
-import { SessionSteps } from './ProposalCard';
+import { SessionSteps } from './SessionSteps';
+import { StepGuide } from './SessionSteps';
 import { chineseTitle, isGarmin } from '../training';
 import type { Course } from '../training';
 
@@ -88,24 +90,27 @@ function StepTarget({ step, secondary = false }: { step: GarminWorkoutStep; seco
     {zone != null && ` · 分区 ${rawText(zone)}`}{target && ` · ${target}`}
   </dd></div>;
 }
-function WorkoutSteps({ steps }: { steps: GarminWorkoutStep[] }) {
+const nativeExercises:Record<string,string>={BARBELL_BENCH_PRESS:'bench-press',CLOSE_GRIP_LAT_PULLDOWN:'lat-pulldown',GOBLET_SQUAT:'goblet-squat',LEG_CURL:'lying-leg-curl',LEG_PRESS:'leg-press',PLANK:'plank',ROMANIAN_DEADLIFT:'romanian-deadlift',SEATED_CABLE_ROW:'seated-cable-row',INCLINE_DUMBBELL_BENCH_PRESS:'incline-dumbbell-press',DUMBBELL_HAMMER_CURL:'hammer-curl',ROW:'machine-row'};
+function WorkoutSteps({ steps, exercises=[] }: { steps: GarminWorkoutStep[];exercises?:Exercise[] }) {
   return <ol className="workout-steps" aria-label="佳明 原始训练步骤">
     {steps.map((step, index) => {
       const nested = Array.isArray(step.workoutSteps) ? step.workoutSteps : [];
       const title = step.stepName ?? step.exerciseName ?? step.description ?? step.stepType;
+      const exercise=exercises.find(ex=>ex.id===nativeExercises[rawKey(step.exerciseName)]);
       const repeat = step.numberOfIterations ?? step.repeatValue ?? (rawKey(step.endCondition) === 'iterations' ? step.endConditionValue : null);
       return <li key={index}>
-        <div className="step-heading"><h4>{title != null ? typeText(title) : `步骤 ${index + 1}`}</h4>
+        <div className="step-heading"><h4>{exercise?.name||(title != null ? typeText(title) : `步骤 ${index + 1}`)}</h4>
           {nested.length > 0 && <span className="step-time">{repeat != null ? `重复 ${rawText(repeat)} 次` : '重复次数未提供'}</span>}
         </div>
         <dl className="training-targets"><EndCondition step={step} /><StepTarget step={step} /><StepTarget step={step} secondary /></dl>
         {typeof step.description === 'string' && step.description !== title && <p className="prose">{step.description}</p>}
-        {nested.length > 0 && <WorkoutSteps steps={nested} />}
+        {exercise&&<StepGuide exercise={exercise}/>}
+        {nested.length > 0 && <WorkoutSteps steps={nested} exercises={exercises}/>}
       </li>;
     })}
   </ol>;
 }
-function WorkoutDetails({ workout }: { workout: GarminWorkout }) {
+function WorkoutDetails({ workout,exercises }: { workout: GarminWorkout;exercises?:Exercise[] }) {
   const time = sessionTime(workout);
   const rest = workout.rest_day || workout.kind === 'rest';
   return <article className="training-course" aria-label={workout.title}>
@@ -123,14 +128,14 @@ function WorkoutDetails({ workout }: { workout: GarminWorkout }) {
     {!rest && <>
       {workout.detail_status === 'error' && <p className="feedback is-error" role="status">详细步骤读取失败：{workout.detail_error || '佳明 暂未返回详情'}。以下保留已有数据。</p>}
       {workout.detail_status !== 'available' && workout.detail_status !== 'error' && <p className="training-chart-note">目前只有 佳明 课程摘要，不是完整训练步骤。未提供的目标范围与热身、恢复安排不会补写。</p>}
-      {workout.steps.length > 0 ? <section className="training-step-section"><h4>佳明 训练步骤</h4><WorkoutSteps steps={workout.steps} /></section>
+      {workout.steps.length > 0 ? <section className="training-step-section"><h4>佳明 训练步骤</h4><WorkoutSteps steps={workout.steps} exercises={exercises}/></section>
         : workout.detail_status === 'available' && <p className="training-chart-note">佳明 详情中未提供训练步骤。</p>}
     </>}
   </article>;
 }
 
-export function CourseSheet({ course, onClose, askCoach }: { course: Course | null; onClose: () => void; askCoach?:(text:string)=>void }) {
+export function CourseSheet({ course, onClose, askCoach, exercises }: { course: Course | null; onClose: () => void; askCoach?:(text:string)=>void; exercises?:Exercise[] }) {
  const titleId=useId();const dialog=useRef<HTMLDialogElement>(null);
- useEffect(()=>{const el=dialog.current;if(!el)return;if(course&&!el.open)el.showModal();if(!course&&el.open)el.close()},[course]);
- return <dialog ref={dialog} className="training-drawer course-sheet" aria-labelledby={titleId} onClose={onClose} onClick={e=>{if(e.target===e.currentTarget)onClose()}}><div className="drawer-content"><header className="drawer-header"><h2 id={titleId}>课程详情</h2><button onClick={onClose} className="text-button" aria-label="关闭课程详情">关闭</button></header>{course&&(isGarmin(course)?<WorkoutDetails workout={course}/>:<><h3 className="course-sheet-name">{course.title}</h3><p className="course-sheet-reason">{course.reason}</p><SessionSteps session={course as ProposedSession}/></>)}{course&&askCoach&&<button className="primary sheet-primary" onClick={()=>{onClose();askCoach(`请帮我评估并细化 ${course.date} 的课程“${course.title}”${isGarmin(course)?`（佳明课程编号${course.id}）`:`（已采用的本站课程编号${course.local_id}）`}，结合实际训练和身体历史变化，需要调整时给出待确认方案。`)}}>请教练评估这堂课</button>}</div></dialog>
+ useTrainingDialog(dialog,Boolean(course));
+ return <dialog ref={dialog} className="training-drawer course-sheet" aria-labelledby={titleId} onClose={onClose} onClick={e=>{if(e.target===e.currentTarget)onClose()}}><div className="drawer-content"><header className="drawer-header"><h2 id={titleId}>课程详情</h2><button onClick={onClose} className="text-button" aria-label="关闭课程详情" autoFocus>关闭</button></header>{course&&(isGarmin(course)?<WorkoutDetails workout={course} exercises={exercises}/>:<><h3 className="course-sheet-name">{course.title}</h3><p className="course-sheet-reason">{course.reason}</p><SessionSteps session={course as ProposedSession} exercises={exercises}/></>)}{course&&askCoach&&<button className="primary sheet-primary" onClick={()=>{onClose();askCoach(`请帮我评估并细化 ${course.date} 的课程“${course.title}”${isGarmin(course)?`（佳明课程编号${course.id}）`:`（已采用的本站课程编号${course.local_id}）`}，结合实际训练和身体历史变化，需要调整时给出待确认方案。`)}}>请教练评估这堂课</button>}</div></dialog>
 }

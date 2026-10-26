@@ -27,6 +27,10 @@ type Garmin struct {
 	Client                    *http.Client
 }
 
+type GarminHTTPError struct{ Status int }
+
+func (e *GarminHTTPError) Error() string { return fmt.Sprintf("佳明接口返回 %d", e.Status) }
+
 func NewGarmin(dir string) *Garmin {
 	region := os.Getenv("GARMIN_REGION")
 	domain := "garmin.cn"
@@ -155,7 +159,7 @@ func (g *Garmin) Request(ctx context.Context, method, path string, payload any) 
 			continue
 		}
 		if res.StatusCode < 200 || res.StatusCode >= 300 {
-			return nil, fmt.Errorf("佳明接口返回 %d", res.StatusCode)
+			return nil, &GarminHTTPError{Status: res.StatusCode}
 		}
 		if len(b) == 0 {
 			return M{}, nil

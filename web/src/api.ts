@@ -1,4 +1,4 @@
-import type { Accepted, CoachState, Profile, CheckInInput, CheckIn, Proposal, TrainingLog } from './types';
+import type { Accepted, CoachState, Profile, CheckInInput, CheckIn, Proposal, TrainingLog, ExportCleanup } from './types';
 
 function serverError(payload: unknown, status: number): string {
   if (payload && typeof payload === 'object') {
@@ -54,6 +54,7 @@ export const api = {
   proposal: (id: string, action: 'accept' | 'dismiss' | 'revert') => request<Proposal>(`/api/proposals/${encodeURIComponent(id)}/${action}`, null),
   trainingLog: (log: TrainingLog) => request<TrainingLog>('/api/training-logs', log),
   publish: (id: string) => request<{status: string; note: string}>(`/api/proposals/${encodeURIComponent(id)}/publish`, null),
+  removeExport: (item:ExportCleanup) => request<{status:string;note:string}>(`/api/exports/${encodeURIComponent(item.receipt_id)}/${encodeURIComponent(item.workout_id)}/remove`, {confirmation:item.confirmation}),
   sync: () => request<Accepted>('/api/sync', null),
 };
 

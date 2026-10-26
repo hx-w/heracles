@@ -26,3 +26,11 @@ Support 320px, standard iPhone widths and desktop. At narrow widths keep two met
 
 ## Future changes
 Extend existing tokens and component styles in plain CSS. Verify actual rendered tabs and focused sheets. Desktop WebKit emulation is not physical iPhone verification.
+
+## Daily review refinements
+
+Today's courses precede recovery and activity history. Rest days use a short row; same-day sessions remain distinct. Four compact metric tiles use quiet amber, blue, green and plum surfaces to identify measurements, not their medical severity. Each keeps its measurement date and missing/stale state.
+
+The recovery sheet opens to one interactive calendar-based trend with per-date readings, available-sample mean and dated change. Missing dates break the line and remain missing in the expandable original records. Course detail groups consecutive phases in execution order; group/set/rest targets stay visible while teaching images, video and per-asset attribution can be expanded and unmounted again.
+
+Use native dialogs with an initial close-button focus and return focus to the triggering control. Preserve 44px controls at 320/390px and system typography. Short mobile viewports tighten spacing before hiding information; content continues to scroll inside its tab or dialog. No new decorative motion or typewriter effect is introduced.

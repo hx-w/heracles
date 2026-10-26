@@ -80,6 +80,7 @@ func (s *Server) Proposals() ([]M, []any) {
 	active := activeSessions(records, plan, checkin)
 	for _, record := range records {
 		record["invalid_reason"] = nil
+		record["export_issues"] = exportIssues(record)
 		for _, item := range array(record["sessions"]) {
 			session := object(item)
 			session["invalid_reason"] = nil
@@ -245,8 +246,18 @@ func (s *Server) Draft(proposal M, context M) (M, error) {
 			if eid := str(step["exercise_id"]); eid != "" && !s.HasExercise(eid) {
 				return nil, errors.New("动作必须来自已验证的教学目录")
 			}
+			if str(session["kind"]) == "strength" && str(step["phase"]) == "work" && str(step["exercise_id"]) == "" {
+				return nil, errors.New("力量主训练动作必须指定教学目录中的动作编号，跑步与骑行请拆成独立课程")
+			}
 		}
 		checkin := object(context["checkin"])
+		// Validate the actual device payload while the bounded coach repair round
+		// can still fix the prescription. Other sports remain explicitly local.
+		if kind := str(session["kind"]); kind == "running" || kind == "cycling" || kind == "strength" {
+			if _, err := workoutPayload(session, str(session["title"])); err != nil {
+				return nil, fmt.Errorf("课程“%s”无法发送到佳明：%w", str(session["title"]), err)
+			}
+		}
 		if date == today() && len(checkin) > 0 {
 			if str(checkin["soreness"]) == "pain" && !rest {
 				return nil, errors.New("有疼痛时当天只能提出暂停训练")

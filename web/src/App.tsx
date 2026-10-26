@@ -1,3 +1,4 @@
+import {rememberDialogTrigger,clearDialogTrigger} from './hooks/useTrainingDialog';
 import { useEffect, useState } from 'react';
 import { syncDisplayMode } from './viewport';
 import type { Course } from './training';
@@ -41,15 +42,17 @@ export default function App() {
     const press = (event: PointerEvent) => {
       if (!(event.target instanceof Element)) return;
       const target = event.target.closest('button, a, summary');
-      if (target && !(target instanceof HTMLButtonElement && target.disabled)) target.classList.add('pointer-press');
+      if (target && !(target instanceof HTMLButtonElement && target.disabled)) {rememberDialogTrigger(target);target.classList.add('pointer-press');}
     };
     const clear = () => document.querySelectorAll('.pointer-press').forEach(element => element.classList.remove('pointer-press'));
     document.addEventListener('pointerdown', press);
+    document.addEventListener('keydown',clearDialogTrigger);
     document.addEventListener('pointerup', clear);
     document.addEventListener('pointercancel', clear);
     window.addEventListener('blur', clear);
     return () => {
       document.removeEventListener('pointerdown', press);
+      document.removeEventListener('keydown',clearDialogTrigger);
       document.removeEventListener('pointerup', clear);
       document.removeEventListener('pointercancel', clear);
       window.removeEventListener('blur', clear);
@@ -100,7 +103,7 @@ export default function App() {
     </main>
     <TrainingHub open={trainingOpen} onClose={() => setTrainingOpen(false)} controller={controller} timer={timer} openCourse={setHubCourse} openCheckin={openCheckin} openStrength={() => setStrengthOpen(true)} askCoach={askCoach} />
     {timer.active && !trainingOpen && <button className="rest-mini" onClick={() => setTrainingOpen(true)} aria-label="打开正在进行的休息计时"><span>{timer.remaining === 0 ? '休息结束' : timer.running ? '组间休息' : '休息已暂停'}</span><strong>{timerLabel(timer.remaining)}</strong><span>打开训练面板 ↑</span></button>}
-    <CourseSheet course={hubCourse} onClose={()=>setHubCourse(null)} askCoach={askCoach}/>
+    <CourseSheet course={hubCourse} exercises={state?.exercise_catalog} onClose={()=>setHubCourse(null)} askCoach={askCoach}/>
     <StrengthDrawer open={strengthOpen} onClose={() => setStrengthOpen(false)} controller={controller} askCoach={askCoach} />
     <nav className="navigation" aria-label="工作区">{navigation.map(item => <a key={item.panel} href={item.panel === 'coach' ? '#coach' : `#${item.panel}`} aria-current={selected === item.panel ? 'page' : undefined}>
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={item.icon} /></svg>{item.label}</a>)}</nav>

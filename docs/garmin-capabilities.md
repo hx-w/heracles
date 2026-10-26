@@ -17,3 +17,13 @@ Sources: [Garmin plan behavior](https://support.garmin.com/en-AU/?faq=o21H5a4cSU
 Any native-write feature must identify the plan kind, show the exact change, require confirmation, recheck its baseline, and verify Garmin's actual result before claiming success. Creating a separate workout is not the same as editing a Coach plan.
 
 Strength exports use native `category` / `exerciseName` keys from [Garmin's exercise catalogue](https://connect.garmin.com/web-data/exercises/Exercises.json), native repetitions and weight units. Repeated sets use repeat groups with the final inter-set rest skipped; the prescribed work, set count and rest remain unchanged. Standard warm-up uses Garmin's warm-up category. An unmapped work exercise is rejected before any course is uploaded, rather than becoming an unnamed step. Teaching detail stays in Heracles; Garmin receives short execution cues and a clean course title. Readback verifies the native steps, counts, weights, units and notes, not only the title.
+
+## Revising an exported Heracles course
+
+Adopt the new local revision first, then confirm its export. Only verified exports belonging to that session's exact `(date, local_id)` ancestry are offered for cleanup. Other sessions on the same day remain separate. Historical receipts without a local ID require one unambiguous match against their original proposal and title; dates alone never establish ownership.
+
+Cleanup is a separate confirmation listing the old title, date and Garmin ID. Before deletion the service refreshes any Garmin plan baseline, revalidates check-in and adopted state, reads back both the old course and its replacement, and compares their execution payloads. A rest revision needs no replacement upload. A course edited externally, missing receipt, changed source, or unverified replacement blocks deletion. Garmin's adaptive originals are never candidates.
+
+Removal intent must be stored before DELETE. Success requires a GET returning an actual 404; authorization failures, malformed responses and network errors cannot prove absence. An uncertain removal permits read-only reconciliation, never another DELETE. Local undo does not recreate a deleted Garmin course. This cleans the independent workout library; it does not schedule a course or edit the adaptive Coach calendar.
+
+New running, cycling and strength proposals are checked against the real export serializer during drafting so the bounded repair round can fix unsupported exercises, ambiguous repetition ranges or mixed sports before adoption. Existing incompatible proposals show the exact issue and an explicit coach-repair action. Rest-only proposals cannot create empty export receipts.

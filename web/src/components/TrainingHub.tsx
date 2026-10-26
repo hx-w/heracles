@@ -1,3 +1,4 @@
+import {useTrainingDialog} from '../hooks/useTrainingDialog';
 import { useEffect, useRef, useState } from 'react';
 import type { CoachController } from '../hooks/useCoachState';
 import type { RestTimer } from '../hooks/useRestTimer';
@@ -9,7 +10,7 @@ export function TrainingHub({ open, onClose, controller, timer, openCourse, open
   const [wakeMessage, setWakeMessage] = useState('');
   const [installed, setInstalled] = useState(() => matchMedia('(display-mode: standalone)').matches || Boolean((navigator as Navigator & { standalone?: boolean }).standalone));
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  useEffect(() => { const el = dialog.current; if (!el) return; if (open && !el.open) el.showModal(); if (!open && el.open) el.close(); }, [open]);
+  useTrainingDialog(dialog,open);
   useEffect(() => {
     const mode = matchMedia('(display-mode: standalone)');
     const update = () => setInstalled(mode.matches || Boolean((navigator as Navigator & { standalone?: boolean }).standalone));

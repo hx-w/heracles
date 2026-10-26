@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"io"
@@ -406,7 +407,10 @@ func TestGarminErrorsNeverExposeToken(t *testing.T) {
 
 func TestExportRequiresDurableReceiptBeforeRemoteWrite(t *testing.T) {
 	s := testServer(t)
-	r := draftFor(t, s, exampleProposal())
+	p := exampleProposal()
+	session := object(array(p["sessions"])[0])
+	session["operation"], session["base_workout_id"] = "add", nil
+	r := draftFor(t, s, p)
 	_, _ = s.Decide(str(r["id"]), "accept")
 	_, e := s.Store.db.Exec("CREATE TRIGGER reject_exports BEFORE INSERT ON exports BEGIN SELECT RAISE(FAIL, 'simulated disk failure'); END;")
 	if e != nil {
@@ -444,6 +448,7 @@ func TestStrengthDurationIncludesSetsAndRecovery(t *testing.T) {
 	session["kind"] = "strength"
 	step := object(array(session["steps"])[0])
 	step["duration_seconds"] = 60
+	step["exercise_id"], step["title"] = "plank", "平板支撑"
 	step["sets"] = 10
 	step["rest_seconds"] = 30
 	if _, e := s.Draft(p, s.Context()); e == nil {
@@ -452,7 +457,10 @@ func TestStrengthDurationIncludesSetsAndRecovery(t *testing.T) {
 }
 func TestShutdownCancelsInFlightExportAndWaitsForReceipt(t *testing.T) {
 	s := testServer(t)
-	record := draftFor(t, s, exampleProposal())
+	p := exampleProposal()
+	session := object(array(p["sessions"])[0])
+	session["operation"], session["base_workout_id"] = "add", nil
+	record := draftFor(t, s, p)
 	_, _ = s.Decide(str(record["id"]), "accept")
 	root, cancel := context.WithCancel(context.Background())
 	s.root = root
@@ -626,5 +634,52 @@ func TestVisualWindowDoesNotMislabelMonthAsWeek(t *testing.T) {
 		if str(object(v)["date"]) < "2026-10-19" {
 			t.Fatal("old measurement in week")
 		}
+	}
+}
+
+func TestCoachEventsPushAndRespectRevocation(t *testing.T) {
+	s := testServer(t)
+	invite, _ := s.Store.Invite()
+	token, _ := s.Store.Pair(invite)
+	remote := httptest.NewServer(s.Handler())
+	defer remote.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	req, _ := http.NewRequestWithContext(ctx, "GET", remote.URL+"/api/coach/events", nil)
+	req.AddCookie(&http.Cookie{Name: CookieName, Value: token})
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+	if res.StatusCode != 200 || !strings.HasPrefix(res.Header.Get("Content-Type"), "text/event-stream") {
+		t.Fatal("no authenticated event stream")
+	}
+	scan := bufio.NewScanner(res.Body)
+	read := func() string {
+		for scan.Scan() {
+			if strings.HasPrefix(scan.Text(), "data: ") {
+				return strings.TrimPrefix(scan.Text(), "data: ")
+			}
+		}
+		return ""
+	}
+	if !strings.Contains(read(), `"busy":false`) {
+		t.Fatal("initial snapshot missing")
+	}
+	s.mu.Lock()
+	s.coachBusy = true
+	s.phase = "核对真实训练记录"
+	s.notifyCoachLocked()
+	s.mu.Unlock()
+	if !strings.Contains(read(), "核对真实训练记录") {
+		t.Fatal("phase not pushed")
+	}
+	_ = s.Store.RevokeAll()
+	s.mu.Lock()
+	s.notifyCoachLocked()
+	s.mu.Unlock()
+	if read() != "" {
+		t.Fatal("revoked device retained stream")
 	}
 }

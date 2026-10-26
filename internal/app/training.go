@@ -113,12 +113,13 @@ func (s *Server) publish(w http.ResponseWriter, r *http.Request, identifier stri
 		}
 		prepared = append(prepared, M{"session": session, "payload": payload})
 	}
-	receipt := M{"id": id(), "proposal_id": identifier, "status": "sending", "created_at": now(), "workouts": []any{}, "note": "独立课程已保存到佳明课程库；自适应原计划不变。请在佳明中选择并同步设备。"}
-	if e := s.Store.SaveRecord("exports", receipt); e != nil {
+	if len(prepared) == 0 {
 		s.mu.Unlock()
-		errorJSON(w, 500, "无法保存发送回执，未向佳明提交任何课程")
+		errorJSON(w, 422, "仅有休息安排，无需创建佳明课程")
 		return
 	}
+	receipt := M{"id": id(), "proposal_id": identifier, "status": "sending", "created_at": now(), "prepared": prepared, "workouts": []any{}, "note": "正在核对独立课程，发送结果尚未确认。"}
+
 	s.jobs.Add(1)
 	defer s.jobs.Done()
 	s.syncBusy = true
@@ -129,6 +130,14 @@ func (s *Server) publish(w http.ResponseWriter, r *http.Request, identifier stri
 	defer cancel()
 	stop := context.AfterFunc(r.Context(), cancel)
 	defer stop()
+	if err := s.revalidateExportSources(ctx, record); err != nil {
+		errorJSON(w, 409, err.Error())
+		return
+	}
+	if e := s.Store.SaveRecord("exports", receipt); e != nil {
+		errorJSON(w, 500, "无法保存发送回执，未向佳明提交任何课程")
+		return
+	}
 	for _, item := range prepared {
 		session, payload := object(item["session"]), object(item["payload"])
 		result, e := s.Garmin.Request(ctx, "POST", "/workout-service/workout", payload)
@@ -140,13 +149,13 @@ func (s *Server) publish(w http.ResponseWriter, r *http.Request, identifier stri
 			return
 		}
 		wid := str(object(result)["workoutId"])
-		if wid == "" {
+		if !regexp.MustCompile(`^[1-9][0-9]*$`).MatchString(wid) {
 			receipt["status"] = "unknown"
 			_ = s.Store.SaveRecord("exports", receipt)
 			errorJSON(w, 502, "佳明未返回课程编号，请核对课程库")
 			return
 		}
-		receipt["workouts"] = append(array(receipt["workouts"]), M{"id": wid, "date": session["date"], "title": session["title"], "status": "uploaded"})
+		receipt["workouts"] = append(array(receipt["workouts"]), M{"id": wid, "local_id": session["local_id"], "date": session["date"], "title": session["title"], "payload": payload, "status": "uploaded"})
 		if e = s.Store.SaveRecord("exports", receipt); e != nil {
 			errorJSON(w, 500, "课程已提交，但回执保存失败；请核对佳明课程库，不要重复发送")
 			return
@@ -168,6 +177,7 @@ func (s *Server) publish(w http.ResponseWriter, r *http.Request, identifier stri
 		}
 	}
 	receipt["status"] = "complete"
+	receipt["note"] = "独立课程已保存到佳明课程库；自适应原计划不变。请在佳明中选择并同步设备。"
 	receipt["updated_at"] = now()
 	if e := s.Store.SaveRecord("exports", receipt); e != nil {
 		errorJSON(w, 500, "课程已核实，但完成状态未保存，请勿重复发送")
@@ -190,6 +200,9 @@ func workoutPayload(session M, name string) (M, error) {
 	order := 1
 	for _, v := range array(session["steps"]) {
 		step := object(v)
+		if kind != "strength" && (str(step["reps"]) != "" || step["load_kg"] != nil || str(step["exercise_id"]) != "") {
+			return nil, errors.New("跑步、骑行与力量动作须拆成不同课程")
+		}
 		repeat := max(1, int(num(step["repeat"]))) * max(1, int(num(step["sets"])))
 		phase := str(step["phase"])
 		stepID := map[string]int{"warmup": 1, "cooldown": 2, "work": 3, "recovery": 4}[phase]
@@ -206,6 +219,9 @@ func workoutPayload(session M, name string) (M, error) {
 				return nil, errors.New("发送力量课程前，需要明确每组次数，不能使用次数范围")
 			}
 			condition, conditionID, value = "reps", 10, num(step["reps"])
+		}
+		if value == nil || !isNumber(value) && condition != "reps" || num(value) <= 0 {
+			return nil, errors.New("步骤缺少可发送的时间、距离或明确次数")
 		}
 		work := M{"type": "ExecutableStepDTO", "stepType": M{"stepTypeId": stepID, "stepTypeKey": stepKey}, "endCondition": M{"conditionTypeId": conditionID, "conditionTypeKey": condition}, "endConditionValue": value, "targetType": M{"workoutTargetTypeId": 1, "workoutTargetTypeKey": "no.target"}, "description": stepDescription(step)}
 		if kind == "strength" && phase != "recovery" {
@@ -331,7 +347,7 @@ func workoutStepsMatch(expected, actual []any) bool {
 				return false
 			}
 		}
-		for _, key := range []string{"stepOrder", "endConditionValue", "numberOfIterations", "weightValue"} {
+		for _, key := range []string{"stepOrder", "endConditionValue", "numberOfIterations", "weightValue", "targetValueOne", "targetValueTwo", "secondaryTargetValueOne", "secondaryTargetValueTwo", "zoneNumber"} {
 			if a[key] != nil && (b[key] == nil || num(a[key]) != num(b[key])) {
 				return false
 			}
@@ -348,6 +364,38 @@ func workoutStepsMatch(expected, actual []any) bool {
 			return false
 		}
 		if !workoutStepsMatch(array(a["workoutSteps"]), array(b["workoutSteps"])) {
+			return false
+		}
+	}
+	return true
+}
+
+// Deletion detects added prescription fields too. Upload readback tolerates metadata.
+func workoutUnchanged(expected, actual M) bool {
+	if !workoutMatches(expected, actual) {
+		return false
+	}
+	var projectSteps func([]any) []any
+	projectSteps = func(values []any) []any {
+		out := []any{}
+		for _, v := range values {
+			step := object(v)
+			p := M{}
+			for _, key := range []string{"type", "category", "exerciseName", "description", "stepOrder", "endConditionValue", "endConditionValueUnit", "numberOfIterations", "weightValue", "targetValueOne", "targetValueTwo", "secondaryTargetValueOne", "secondaryTargetValueTwo", "zoneNumber", "secondaryZoneNumber"} {
+				p[key] = step[key]
+			}
+			for ref, key := range map[string]string{"stepType": "stepTypeKey", "endCondition": "conditionTypeKey", "targetType": "workoutTargetTypeKey", "secondaryTargetType": "workoutTargetTypeKey", "weightUnit": "unitKey"} {
+				p[ref] = object(step[ref])[key]
+			}
+			p["skipLastRestStep"], p["smartRepeat"] = boolean(step["skipLastRestStep"]), boolean(step["smartRepeat"])
+			p["workoutSteps"] = projectSteps(array(step["workoutSteps"]))
+			out = append(out, p)
+		}
+		return out
+	}
+	a, b := array(expected["workoutSegments"]), array(actual["workoutSegments"])
+	for i := range a {
+		if hash(projectSteps(array(object(a[i])["workoutSteps"]))) != hash(projectSteps(array(object(b[i])["workoutSteps"]))) {
 			return false
 		}
 	}
